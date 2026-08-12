@@ -1,0 +1,16 @@
+{
+  "name": "banco-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Banco de La Placeta — banca en línea ciudadana (igualito a la app). Solo consume la API real backend-banco con Bearer PlacetaID.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2"
+  }
+}

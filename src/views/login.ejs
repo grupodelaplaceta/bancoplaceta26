@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión · Banco de La Placeta</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bw-theme bw-login-body">
+  <div class="bw-login-card">
+    <div class="bw-brand bw-login-brand">
+      <span class="bw-logo">🏛️</span>
+      <h1>Banco de La Placeta</h1>
+      <p>Accede con tu identidad PlacetaID</p>
+    </div>
+    <% if (error) { %>
+      <div class="bw-alert bw-alert-error">No se pudo iniciar sesión. Inténtalo de nuevo.</div>
+    <% } %>
+    <a class="bw-btn bw-btn-primary bw-btn-block" href="<%= loginUrl %>">🔐 Iniciar sesión con PlacetaID</a>
+    <p class="bw-login-foot">La identidad y el segundo factor se gestionan en <strong>PlacetaID</strong> (id.laplaceta.org).</p>
+  </div>
+</body>
+</html>

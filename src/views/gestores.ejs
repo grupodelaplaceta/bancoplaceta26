@@ -1,0 +1,28 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <h1>Gestores y cotitulares</h1>
+    <p class="bw-sub">Personas con acceso a tus cuentas</p>
+  </div>
+  <div class="bw-card">
+    <% if (!gestores.length) { %>
+      <div class="bw-empty">No hay gestores asociados a tus cuentas.</div>
+    <% } else { %>
+      <table class="bw-table">
+        <thead>
+          <tr><th>Persona</th><th>Rol</th><th>%</th><th>Vinculado</th><th>Válido hasta</th></tr>
+        </thead>
+        <tbody>
+          <% gestores.forEach(function(g) { %>
+            <tr>
+              <td><strong><%- g.displayName %></strong> <span class="bw-muted">· <%= g.placetaId %></span></td>
+              <td><span class="bw-chip bw-chip-soft"><%= g.role %></span></td>
+              <td><%= g.ownershipPercent %>%</td>
+              <td class="bw-muted"><%= g.linkedAt ? new Date(g.linkedAt).toLocaleDateString('es-ES') : '—' %></td>
+              <td class="bw-muted"><%= g.validUntil ? new Date(g.validUntil).toLocaleDateString('es-ES') : '—' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>

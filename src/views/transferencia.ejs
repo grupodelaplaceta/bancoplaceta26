@@ -1,0 +1,41 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <h1>Transferencia</h1>
+    <p class="bw-sub">Las transferencias se registran como pendientes y se ejecutan tras confirmarlas en <strong>PlacetaID Móvil</strong>.</p>
+  </div>
+
+  <% if (resultado) { %>
+    <div class="bw-banner bw-banner-ok">
+      <strong>✅ Solicitud registrada</strong><br>
+      Referencia: <code><%= resultado.id %></code><br>
+      Código de ejecución: <code><%= resultado.executionCode %></code><br>
+      <%- resultado.mensaje %>
+    </div>
+  <% } %>
+
+  <% if (error) { %>
+    <div class="bw-alert bw-alert-error"><%- error %></div>
+  <% } %>
+
+  <div class="bw-card">
+    <form method="POST" action="/transferencia" class="bw-form">
+      <label>Cuenta origen (tuya)
+        <select name="from" required>
+          <% cuentas.forEach(function(c) { %>
+            <option value="<%= c.id %>"><%- c.displayName %> · <%= c.iban %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label>Cuenta destino (ID de cuenta)
+        <input name="to" placeholder="acc-..." required autocomplete="off">
+      </label>
+      <label>Cantidad (Pz)
+        <input name="cantidad" type="number" min="1" step="1" required>
+      </label>
+      <label>Concepto
+        <input name="concepto" placeholder="Opcional" autocomplete="off">
+      </label>
+      <button type="submit" class="bw-btn bw-btn-primary">Solicitar transferencia</button>
+    </form>
+  </div>
+</div>

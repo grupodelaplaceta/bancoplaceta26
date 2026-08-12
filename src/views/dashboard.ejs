@@ -1,0 +1,26 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <div>
+      <h1>Hola, <%- usuario.displayName || usuario.dip %></h1>
+      <p class="bw-sub">DIP <strong><%= usuario.dip %></strong> · <%= usuario.censado ? '🟢 Censado en Tributos' : '🟠 Censo tributario pendiente' %></p>
+    </div>
+  </div>
+
+  <div class="bw-grid">
+    <% cuentas.forEach(function(cuenta) { %>
+      <div class="bw-card bw-account <%= cuenta.closedAt ? 'bw-muted' : '' %>">
+        <div class="bw-account-top">
+          <span class="bw-chip"><%= cuenta.type %></span>
+          <span class="bw-chip bw-chip-soft"><%= cuenta.complianceStatus %></span>
+        </div>
+        <div class="bw-account-name"><%- cuenta.displayName %></div>
+        <div class="bw-account-iban"><%= cuenta.iban %></div>
+        <div class="bw-account-balance"><%= cuenta.balancePz.toLocaleString('es-ES') %> <span class="bw-cur">Pz</span></div>
+        <% if (cuenta.eip) { %><div class="bw-account-eip">EIP: <strong><%= cuenta.eip %></strong></div><% } %>
+      </div>
+    <% }) %>
+    <% if (!cuentas.length) { %>
+      <div class="bw-card bw-empty">No tienes cuentas asociadas.</div>
+    <% } %>
+  </div>
+</div>

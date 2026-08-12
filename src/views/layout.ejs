@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Banco de La Placeta</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bw-theme">
+  <div class="bw-shell">
+    <aside class="bw-sidebar">
+      <div class="bw-brand">
+        <span class="bw-logo">🏛️</span>
+        <div>
+          <strong>Banco de La Placeta</strong>
+          <small>Banca en línea</small>
+        </div>
+      </div>
+      <nav class="bw-nav">
+        <a href="/" class="bw-link <%= active === 'inicio' ? 'active' : '' %>">🏠 Inicio</a>
+        <a href="/movimientos" class="bw-link <%= active === 'movimientos' ? 'active' : '' %>">💸 Movimientos</a>
+        <a href="/tarjetas" class="bw-link <%= active === 'tarjetas' ? 'active' : '' %>">💳 Tarjetas</a>
+        <a href="/gestores" class="bw-link <%= active === 'gestores' ? 'active' : '' %>">🤝 Gestores</a>
+        <a href="/cumplimiento" class="bw-link <%= active === 'cumplimiento' ? 'active' : '' %>">🛡️ Cumplimiento</a>
+        <a href="/transferencia" class="bw-link <%= active === 'transferencia' ? 'active' : '' %>">↔️ Transferencia</a>
+      </nav>
+      <form action="/auth/logout" method="POST" class="bw-logout">
+        <button type="submit" class="bw-btn bw-btn-ghost">🚪 Salir</button>
+      </form>
+    </aside>
+    <main class="bw-main">
+      <%- body %>
+    </main>
+  </div>
+</body>
+</html>

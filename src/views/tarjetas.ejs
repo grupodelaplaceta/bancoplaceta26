@@ -1,0 +1,21 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <h1>Tarjetas</h1>
+    <p class="bw-sub">Tus tarjetas digitales (número enmascarado, el PIN solo se gestiona en la app)</p>
+  </div>
+  <div class="bw-grid">
+    <% tarjetas.forEach(function(t) { %>
+      <div class="bw-card bw-card-tarjeta <%= t.frozen ? 'bw-muted' : '' %>">
+        <div class="bw-account-top">
+          <span class="bw-chip"><%= t.tier %></span>
+          <span class="bw-chip <%= t.frozen ? 'bw-chip-danger' : 'bw-chip-soft' %>"><%= t.frozen ? '❄️ Bloqueada' : '✅ Activa' %></span>
+        </div>
+        <div class="bw-account-name"><%- t.alias %></div>
+        <div class="bw-card-number"><%= t.cardNumber %></div>
+      </div>
+    <% }) %>
+    <% if (!tarjetas.length) { %>
+      <div class="bw-card bw-empty">No tienes tarjetas digitales.</div>
+    <% } %>
+  </div>
+</div>

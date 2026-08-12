@@ -1,0 +1,51 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <h1>Cumplimiento</h1>
+    <p class="bw-sub">Estado fiscal y de cumplimiento de tus cuentas</p>
+  </div>
+
+  <div class="bw-banner <%= censado ? 'bw-banner-ok' : 'bw-banner-warn' %>">
+    <%= censado
+      ? '✅ Estás censado en el padrón tributario (Tributos).'
+      : '🟠 Aún no estás censado en el padrón tributario. Contacta con Tributos.' %>
+  </div>
+
+  <div class="bw-grid">
+    <% cuentas.forEach(function(c) { %>
+      <div class="bw-card">
+        <div class="bw-account-top">
+          <span class="bw-account-name"><%- c.displayName %></span>
+          <span class="bw-chip <%= c.complianceStatus === 'Clear' ? 'bw-chip-soft' : 'bw-chip-danger' %>"><%= c.complianceStatus %></span>
+        </div>
+        <div class="bw-row">
+          <span>IRM (impuesto de renta):</span><strong><%= c.irmOptIn ? 'Optado' : 'No optado' %></strong>
+        </div>
+        <% if (c.irmDueDate) { %>
+          <div class="bw-row"><span>IRM vence:</span><strong><%= c.irmDueDate %></strong></div>
+        <% } %>
+        <div class="bw-row"><span>Justificación de fondos:</span><strong><%= c.fundsJustificationApproved ? '✅ Aprobada' : 'Pendiente' %></strong></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="bw-card">
+    <h3>Avisos de cumplimiento</h3>
+    <% if (!flags.length) { %>
+      <div class="bw-empty">Sin avisos.</div>
+    <% } else { %>
+      <table class="bw-table">
+        <thead><tr><th>Fecha</th><th>Motivo</th><th>Importe</th><th>Estado</th></tr></thead>
+        <tbody>
+          <% flags.forEach(function(f) { %>
+            <tr>
+              <td class="bw-muted"><%= new Date(f.createdAt).toLocaleDateString('es-ES') %></td>
+              <td><%- f.reason %></td>
+              <td><%= f.amountPz.toLocaleString('es-ES') %> Pz</td>
+              <td><span class="bw-chip bw-chip-soft"><%= f.status %></span></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>

@@ -1,0 +1,34 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <h1>Movimientos</h1>
+    <p class="bw-sub">Últimos movimientos de tus cuentas</p>
+  </div>
+  <div class="bw-card">
+    <% if (!movimientos.length) { %>
+      <div class="bw-empty">Sin movimientos recientes.</div>
+    <% } else { %>
+      <table class="bw-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Concepto</th>
+            <th>Importe</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% movimientos.forEach(function(m) { %>
+            <tr>
+              <td class="bw-muted"><%= new Date(m.createdAt).toLocaleString('es-ES') %></td>
+              <td><%- m.concept || m.kind %></td>
+              <td class="<%= m.esEntrada ? 'bw-pos' : 'bw-neg' %>">
+                <%= (m.esEntrada ? '+' : '−') %><%= m.amountPz.toLocaleString('es-ES') %> Pz
+              </td>
+              <td><span class="bw-chip bw-chip-soft"><%= m.status %></span></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</div>
