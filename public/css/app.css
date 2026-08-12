@@ -164,8 +164,38 @@ body.bw-theme {
 .bw-login-brand p { margin: 0; color: var(--bw-muted); font-size: 13px; }
 .bw-login-foot { color: var(--bw-muted); font-size: 12px; text-align: center; margin: 0; }
 
+/* ── WCAG: foco visible ──────────────────────────────── */
+:focus-visible { outline: 3px solid #22d3ee !important; outline-offset: 2px; border-radius: 6px; }
+
+/* ── Responsive ──────────────────────────────────────── */
+/* Tarjetas con tablas: scroll horizontal en pantallas medianas */
+@media (max-width: 1024px) {
+  .bw-card:has(table) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .bw-card:has(table) .bw-table { min-width: 520px; }
+}
+
 @media (max-width: 760px) {
   .bw-shell { flex-direction: column; }
-  .bw-sidebar { position: static; height: auto; width: 100%; }
-  .bw-main { padding: 20px; }
+  /* Sidebar → barra superior compacta con nav horizontal */
+  .bw-sidebar {
+    position: sticky; top: 0; z-index: 10; width: 100%; height: auto;
+    flex-direction: row; align-items: center; gap: 10px;
+    padding: 10px 12px; border-right: none; border-bottom: 1px solid var(--bw-border);
+  }
+  .bw-brand small { display: none; }
+  .bw-nav { flex-direction: row; gap: 2px; overflow-x: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+  .bw-link { white-space: nowrap; padding: 8px 10px; font-size: 13px; }
+  .bw-logout { margin: 0; }
+  .bw-logout .bw-btn { padding: 8px 10px; font-size: 13px; }
+  .bw-main { padding: 16px; }
+  .bw-grid { grid-template-columns: 1fr; }
+  .bw-header h1 { font-size: 20px; }
+  .bw-account-balance { font-size: 24px; }
+  .bw-login-card { width: 92vw; padding: 24px; }
 }
+
+@media (max-width: 460px) {
+  .bw-account-top { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .bw-row { flex-direction: column; gap: 2px; }
+}
+
