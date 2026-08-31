@@ -4,33 +4,90 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Banco de La Placeta</title>
+  <meta name="description" content="Banca en línea ciudadana de La Placeta">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%234D00FF'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>B</text></svg>">
   <link rel="stylesheet" href="/css/app.css">
 </head>
 <body class="bw-theme">
   <div class="bw-shell">
     <aside class="bw-sidebar">
       <div class="bw-brand">
-        <span class="bw-logo">🏛️</span>
+        <span class="bw-brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9 20v-6h6v6"/></svg>
+        </span>
         <div>
           <strong>Banco de La Placeta</strong>
           <small>Banca en línea</small>
         </div>
       </div>
       <nav class="bw-nav">
-        <a href="/" class="bw-link <%= active === 'inicio' ? 'active' : '' %>">🏠 Inicio</a>
-        <a href="/movimientos" class="bw-link <%= active === 'movimientos' ? 'active' : '' %>">💸 Movimientos</a>
-        <a href="/tarjetas" class="bw-link <%= active === 'tarjetas' ? 'active' : '' %>">💳 Tarjetas</a>
-        <a href="/gestores" class="bw-link <%= active === 'gestores' ? 'active' : '' %>">🤝 Gestores</a>
-        <a href="/cumplimiento" class="bw-link <%= active === 'cumplimiento' ? 'active' : '' %>">🛡️ Cumplimiento</a>
-        <a href="/transferencia" class="bw-link <%= active === 'transferencia' ? 'active' : '' %>">↔️ Transferencia</a>
+        <a href="/" class="bw-link <%= active === 'inicio' ? 'active' : '' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/></svg>
+          Inicio
+        </a>
+        <a href="/movimientos" class="bw-link <%= active === 'movimientos' ? 'active' : '' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          Movimientos
+        </a>
+        <a href="/tarjetas" class="bw-link <%= active === 'tarjetas' ? 'active' : '' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+          Tarjetas
+        </a>
+        <a href="/gestores" class="bw-link <%= active === 'gestores' ? 'active' : '' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 20a6.5 6.5 0 0 0-3.5-5.8"/></svg>
+          Gestores
+        </a>
+        <a href="/cumplimiento" class="bw-link <%= active === 'cumplimiento' ? 'active' : '' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.2 7.7 8 9 4.8-1.3 8-4.5 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>
+          Cumplimiento
+        </a>
+        <a href="/transferencia" class="bw-link <%= active === 'transferencia' ? 'active' : '' %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10V6h10M7 10l4-4M17 14v4H7M17 14l-4 4"/></svg>
+          Transferencia
+        </a>
       </nav>
       <form action="/auth/logout" method="POST" class="bw-logout">
-        <button type="submit" class="bw-btn bw-btn-ghost">🚪 Salir</button>
+        <button type="submit" class="bw-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+          Salir
+        </button>
       </form>
     </aside>
     <main class="bw-main">
       <%- body %>
     </main>
   </div>
+  <script>
+    // Contador animado del saldo (igual que la app)
+    document.querySelectorAll('[data-count]').forEach(function (el) {
+      var target = parseFloat(el.getAttribute('data-count') || '0');
+      var dur = 700, start = null;
+      function tick(ts) {
+        if (!start) start = ts;
+        var p = Math.min((ts - start) / dur, 1);
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * eased).toLocaleString('es-ES') + ' Pz';
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+    // Copiar IBAN al portapapeles
+    document.querySelectorAll('.bw-copy').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var text = btn.getAttribute('data-copy') || '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text);
+        } else {
+          var ta = document.createElement('textarea');
+          ta.value = text; document.body.appendChild(ta); ta.select();
+          try { document.execCommand('copy'); } catch (e) {}
+          document.body.removeChild(ta);
+        }
+        var original = btn.innerHTML;
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+        setTimeout(function () { btn.innerHTML = original; }, 1200);
+      });
+    });
+  </script>
 </body>
 </html>

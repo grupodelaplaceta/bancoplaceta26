@@ -12,19 +12,19 @@
           <tr>
             <th>Fecha</th>
             <th>Concepto</th>
-            <th>Importe</th>
+            <th style="text-align:right">Importe</th>
             <th>Estado</th>
           </tr>
         </thead>
         <tbody>
           <% movimientos.forEach(function(m) { %>
             <tr>
-              <td class="bw-muted"><%= new Date(m.createdAt).toLocaleString('es-ES') %></td>
+              <td class="bw-muted" style="white-space:nowrap"><%= new Date(m.createdAt).toLocaleString('es-ES') %></td>
               <td><%- m.concept || m.kind %></td>
-              <td class="<%= m.esEntrada ? 'bw-pos' : 'bw-neg' %>">
+              <td class="<%= m.esEntrada ? 'bw-pos' : 'bw-neg' %>" style="text-align:right">
                 <%= (m.esEntrada ? '+' : '−') %><%= m.amountPz.toLocaleString('es-ES') %> Pz
               </td>
-              <td><span class="bw-chip bw-chip-soft"><%= m.status %></span></td>
+              <td><span class="bw-chip <%= m.status === 'Settled' ? 'bw-chip-soft' : 'bw-chip-warn' %>"><%= m.status %></span></td>
             </tr>
           <% }) %>
         </tbody>

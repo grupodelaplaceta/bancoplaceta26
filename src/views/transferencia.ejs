@@ -1,12 +1,12 @@
 <div class="bw-page">
   <div class="bw-header">
     <h1>Transferencia</h1>
-    <p class="bw-sub">Las transferencias se registran como pendientes y se ejecutan tras confirmarlas en <strong>PlacetaID Móvil</strong>.</p>
+    <p class="bw-sub">Se registra como pendiente y se ejecuta tras confirmarla en <strong>PlacetaID Móvil</strong>. Puedes enviar a cuentas de la app y de la web.</p>
   </div>
 
   <% if (resultado) { %>
     <div class="bw-banner bw-banner-ok">
-      <strong>✅ Solicitud registrada</strong><br>
+      <strong>Solicitud registrada</strong><br>
       Referencia: <code><%= resultado.id %></code><br>
       Código de ejecución: <code><%= resultado.executionCode %></code><br>
       <%- resultado.mensaje %>
@@ -22,12 +22,13 @@
       <label>Cuenta origen (tuya)
         <select name="from" required>
           <% cuentas.forEach(function(c) { %>
-            <option value="<%= c.id %>"><%- c.displayName %> · <%= c.iban %></option>
+            <option value="<%= c.id %>"><%- c.displayName %> · <%= c.ibanFull || c.iban %></option>
           <% }) %>
         </select>
       </label>
-      <label>Cuenta destino (ID de cuenta)
-        <input name="to" placeholder="acc-..." required autocomplete="off">
+      <label>Cuenta destino (IBAN)
+        <input name="to" placeholder="GDLP-APXX-XXX · GDLP-WXXX-XXXX" required autocomplete="off" style="text-transform:uppercase">
+        <span class="bw-hint">Vale el IBAN de la app (<code>GDLP-AP##-###</code>), el de la web (<code>GDLP-W###-####</code>) o el número de cuenta.</span>
       </label>
       <label>Cantidad (Pz)
         <input name="cantidad" type="number" min="1" step="1" required>
@@ -35,7 +36,10 @@
       <label>Concepto
         <input name="concepto" placeholder="Opcional" autocomplete="off">
       </label>
-      <button type="submit" class="bw-btn bw-btn-primary">Solicitar transferencia</button>
+      <button type="submit" class="bw-btn bw-btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10V6h10M7 10l4-4M17 14v4H7M17 14l-4 4"/></svg>
+        Solicitar transferencia
+      </button>
     </form>
   </div>
 </div>

@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import expressLayouts from "express-ejs-layouts";
 import path from "path";
 import { fileURLToPath } from "url";
 import { loginUrl, validateToken } from "./lib/placetaid.js";
@@ -14,6 +15,8 @@ const CALLBACK_URL = `${APP_URL}/auth/callback`;
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "src/views"));
+app.set("layout", "layout");
+app.use(expressLayouts);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -34,7 +37,7 @@ function requireAuth(req, res, next) {
 
 app.get("/login", (req, res) => {
   if (getToken(req)) return res.redirect("/");
-  res.render("login", { loginUrl: loginUrl(CALLBACK_URL), error: req.query.error || null });
+  res.render("login", { layout: false, loginUrl: loginUrl(CALLBACK_URL), error: req.query.error || null });
 });
 
 app.get("/auth/login", (req, res) => res.redirect(loginUrl(CALLBACK_URL)));
@@ -58,15 +61,22 @@ app.get("/", requireAuth, async (req, res) => {
   const token = getToken(req);
   const r = await webGet(token, "/api/web/cuenta");
   if (r.status === 401) return res.redirect("/login");
-  if (!r.ok) return res.status(502).render("error", { mensaje: "No se pudo conectar con el banco en este momento." });
-  res.render("dashboard", { usuario: r.body.usuario, cuentas: r.body.cuentas, active: "inicio" });
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudo conectar con el banco en este momento." });
+  // Últimos movimientos para el resumen del inicio (igual que la app)
+  const mv = await webGet(token, "/api/web/movimientos?limit=8");
+  res.render("dashboard", {
+    usuario: r.body.usuario,
+    cuentas: r.body.cuentas,
+    movimientos: (mv.ok && mv.body.movimientos) || [],
+    active: "inicio"
+  });
 });
 
 app.get("/movimientos", requireAuth, async (req, res) => {
   const token = getToken(req);
   const r = await webGet(token, "/api/web/movimientos?limit=200");
   if (r.status === 401) return res.redirect("/login");
-  if (!r.ok) return res.status(502).render("error", { mensaje: "No se pudieron cargar los movimientos." });
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudieron cargar los movimientos." });
   res.render("movimientos", { movimientos: r.body.movimientos || [], active: "movimientos" });
 });
 
@@ -74,7 +84,7 @@ app.get("/tarjetas", requireAuth, async (req, res) => {
   const token = getToken(req);
   const r = await webGet(token, "/api/web/tarjetas");
   if (r.status === 401) return res.redirect("/login");
-  if (!r.ok) return res.status(502).render("error", { mensaje: "No se pudieron cargar las tarjetas." });
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudieron cargar las tarjetas." });
   res.render("tarjetas", { tarjetas: r.body.tarjetas || [], active: "tarjetas" });
 });
 
@@ -82,7 +92,7 @@ app.get("/gestores", requireAuth, async (req, res) => {
   const token = getToken(req);
   const r = await webGet(token, "/api/web/gestores");
   if (r.status === 401) return res.redirect("/login");
-  if (!r.ok) return res.status(502).render("error", { mensaje: "No se pudieron cargar los gestores." });
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudieron cargar los gestores." });
   res.render("gestores", { gestores: r.body.gestores || [], active: "gestores" });
 });
 
@@ -90,7 +100,7 @@ app.get("/cumplimiento", requireAuth, async (req, res) => {
   const token = getToken(req);
   const r = await webGet(token, "/api/web/cumplimiento");
   if (r.status === 401) return res.redirect("/login");
-  if (!r.ok) return res.status(502).render("error", { mensaje: "No se pudo cargar el cumplimiento." });
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudo cargar el cumplimiento." });
   res.render("cumplimiento", {
     censado: r.body.censado,
     flags: r.body.flags || [],
@@ -103,7 +113,7 @@ app.get("/transferencia", requireAuth, async (req, res) => {
   const token = getToken(req);
   const r = await webGet(token, "/api/web/cuenta");
   if (r.status === 401) return res.redirect("/login");
-  if (!r.ok) return res.status(502).render("error", { mensaje: "No se pudo cargar tu información." });
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudo cargar tu información." });
   res.render("transferencia", {
     cuentas: r.body.cuentas || [],
     resultado: null,
@@ -141,7 +151,7 @@ app.post("/transferencia", requireAuth, async (req, res) => {
 });
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
-app.use((req, res) => res.status(404).render("error", { mensaje: "Página no encontrada." }));
+app.use((req, res) => res.status(404).render("error", { layout: false, mensaje: "Página no encontrada." }));
 
 // Solo escucha si es el servidor local (en Vercel lo hace api/index.js)
 if (!process.env.VERCEL) {
