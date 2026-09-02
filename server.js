@@ -150,6 +150,54 @@ app.post("/transferencia", requireAuth, async (req, res) => {
   });
 });
 
+function ultimosMeses(n) {
+  const ahora = new Date();
+  const lista = [];
+  for (let i = 0; i < (n || 6); i++) {
+    const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    lista.push({ value, label: value });
+  }
+  return lista;
+}
+
+app.get("/facturacion", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const mes = String(req.query.mes || new Date().toISOString().slice(0, 7));
+  const r = await webGet(token, `/api/web/facturacion?mes=${encodeURIComponent(mes)}`);
+  if (r.status === 401) return res.redirect("/login");
+  res.render("facturacion", {
+    facturacion: r.ok ? r.body : null,
+    error: r.ok ? null : (r.body?.error || "No se pudo cargar la facturación."),
+    resultado: null,
+    mes,
+    meses: ultimosMeses(6),
+    active: "facturacion"
+  });
+});
+
+app.post("/facturacion", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const mes = String((req.body || {}).mes || new Date().toISOString().slice(0, 7));
+  const facturaIds = [].concat((req.body || {}).facturaIds || []).map(String).filter(Boolean);
+  const r = await webPost(token, "/api/web/facturacion/pagar-iva", {
+    from: String((req.body || {}).from || "").trim(),
+    mes,
+    facturaIds
+  });
+  if (r.status === 401) return res.redirect("/login");
+  // Re-render con la facturación actualizada y el resultado/error del pago.
+  const fr = await webGet(token, `/api/web/facturacion?mes=${encodeURIComponent(mes)}`);
+  res.render("facturacion", {
+    facturacion: fr.ok ? fr.body : null,
+    resultado: r.ok ? r.body.pago : null,
+    error: r.ok ? null : (r.body?.error || "No se pudo ordenar el pago del IVA."),
+    mes,
+    meses: ultimosMeses(6),
+    active: "facturacion"
+  });
+});
+
 // ── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).render("error", { layout: false, mensaje: "Página no encontrada." }));
 

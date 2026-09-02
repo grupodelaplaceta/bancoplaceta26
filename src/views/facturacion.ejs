@@ -1,0 +1,126 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <h1>Facturación</h1>
+    <p class="bw-sub">Facturas de venta de tus empresas y su <strong>IVA a ingresar a Tributos</strong>. Se paga con una transferencia del Banco que confirmas en <strong>PlacetaID Móvil</strong>.</p>
+  </div>
+
+  <div class="bw-card" style="margin-bottom:18px">
+    <form method="GET" action="/facturacion" class="bw-form bw-form-inline" style="display:flex;gap:10px;align-items:flex-end">
+      <label>Mes
+        <select name="mes">
+          <% meses.forEach(function(m) { %>
+            <option value="<%= m.value %>" <%= m.value === mes ? 'selected' : '' %>><%= m.label %></option>
+          <% }) %>
+        </select>
+      </label>
+      <button type="submit" class="bw-btn bw-btn-ghost">Ver mes</button>
+    </form>
+  </div>
+
+  <% if (resultado) { %>
+    <div class="bw-banner bw-banner-ok">
+      <strong>Pago de IVA solicitado</strong><br>
+      Importe: <strong><%= resultado.importe.toLocaleString('es-ES') %> Pz</strong> · <%= resultado.facturas.length %> factura(s) · Empresa <%= resultado.eip %><br>
+      Referencia: <code><%= resultado.id %></code> · Código de ejecución: <code><%= resultado.executionCode %></code><br>
+      <%- resultado.mensaje %>
+    </div>
+  <% } %>
+
+  <% if (error) { %>
+    <div class="bw-alert bw-alert-error"><%- error %></div>
+  <% } %>
+
+  <% if (!facturacion) { %>
+    <div class="bw-banner bw-banner-warn">No se pudo cargar la facturación. Inténtalo de nuevo en un momento.</div>
+  <% } else if (!facturacion.empresas || facturacion.empresas.length === 0) { %>
+    <div class="bw-card"><div class="bw-empty">No tienes cuentas de empresa con EIP. Las facturas y el IVA se gestionan desde la cuenta de tu empresa.</div></div>
+  <% } else { %>
+    <% facturacion.empresas.forEach(function(emp, ei) { %>
+      <div class="bw-card" style="margin-bottom:18px">
+        <div class="bw-account-top">
+          <span class="bw-account-name"><%- emp.nombre %></span>
+          <span class="bw-chip"><code><%= emp.eip %></code></span>
+        </div>
+        <div class="bw-row">
+          <span>IVA del mes (ventas):</span><strong><%= (emp.totalIvaVentas||0).toLocaleString('es-ES') %> Pz</strong>
+        </div>
+        <div class="bw-row">
+          <span>IVA ya ingresado a Tributos:</span><strong><%= (emp.totalIvaPagado||0).toLocaleString('es-ES') %> Pz</strong>
+        </div>
+        <div class="bw-row">
+          <span>IVA pendiente de ingresar:</span><strong data-iva-pend="<%= emp.ivaPendiente %>"><%= (emp.ivaPendiente||0).toLocaleString('es-ES') %> Pz</strong>
+        </div>
+
+        <% if (!emp.facturas || emp.facturas.length === 0) { %>
+          <div class="bw-empty">Sin facturas de venta en este mes.</div>
+        <% } else { %>
+          <form method="POST" action="/facturacion" data-empresa-form>
+            <input type="hidden" name="mes" value="<%= mes %>">
+            <table class="bw-table">
+              <thead><tr><th style="width:34px"></th><th>Factura</th><th>Fecha</th><th>Concepto</th><th>Cliente</th><th style="text-align:right">Bruto</th><th style="text-align:right">IVA</th><th>IVA</th></tr></thead>
+              <tbody>
+                <% emp.facturas.forEach(function(f) { %>
+                  <tr>
+                    <td>
+                      <% if (!f.ivaPagado) { %>
+                        <input type="checkbox" name="facturaIds" value="<%= f.id %>" data-iva="<%= f.iva %>" data-pendiente>
+                      <% } %>
+                    </td>
+                    <td class="bw-muted"><code><%= f.id %></code></td>
+                    <td class="bw-muted"><%= f.fecha %></td>
+                    <td><%- f.concepto %></td>
+                    <td class="bw-muted"><code><%= f.cliente %></code></td>
+                    <td style="text-align:right"><%= f.bruto.toLocaleString('es-ES') %> Pz</td>
+                    <td style="text-align:right"><%= f.iva.toLocaleString('es-ES') %> Pz</td>
+                    <td>
+                      <% if (f.ivaPagado) { %>
+                        <span class="bw-chip bw-chip-soft">Pagado</span>
+                      <% } else { %>
+                        <span class="bw-chip bw-chip-warn">Pendiente</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-top:14px">
+              <label>Cuenta de cargo (tuya)
+                <select name="from" required>
+                  <% emp.cuentas.forEach(function(c) { %>
+                    <option value="<%= c.id %>"><%- c.displayName %> · <%= (c.saldo||0).toLocaleString('es-ES') %> Pz</option>
+                  <% }) %>
+                </select>
+              </label>
+              <div>
+                <span class="bw-hint" style="display:block;margin-bottom:6px">Seleccionado:</span>
+                <strong data-total-seleccion>0 Pz</strong>
+              </div>
+              <button type="submit" class="bw-btn bw-btn-primary" data-pagar-btn disabled>Pagar IVA seleccionado</button>
+            </div>
+            <p class="bw-hint">El importe se transfiere a Tributos (TGLP) y se confirmará en PlacetaID Móvil. Nunca es un pago PlaceZum.</p>
+          </form>
+        <% } %>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+
+<script>
+  (function () {
+    document.querySelectorAll('[data-empresa-form]').forEach(function (form) {
+      var checkboxes = Array.prototype.slice.call(form.querySelectorAll('input[name="facturaIds"]'));
+      var totalEl = form.querySelector('[data-total-seleccion]');
+      var btn = form.querySelector('[data-pagar-btn]');
+      function refresh() {
+        var total = 0, n = 0;
+        checkboxes.forEach(function (cb) { if (cb.checked) { total += parseFloat(cb.getAttribute('data-iva') || '0'); n++; } });
+        total = Math.round(total * 100) / 100;
+        if (totalEl) totalEl.textContent = total.toLocaleString('es-ES') + ' Pz';
+        if (btn) btn.disabled = n === 0;
+        if (btn) btn.textContent = n === 0 ? 'Pagar IVA seleccionado' : 'Pagar IVA seleccionado (' + n + ')';
+      }
+      checkboxes.forEach(function (cb) { cb.addEventListener('change', refresh); });
+      refresh();
+    });
+  })();
+</script>
