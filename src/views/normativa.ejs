@@ -1,0 +1,43 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <h1>Valores oficiales</h1>
+    <p class="bw-sub">Normativa vigente del CNI-BANCO leída en vivo del Boletín Oficial de La Placeta</p>
+  </div>
+
+  <% if (!ok) { %>
+    <div class="bw-banner bw-banner-warn">
+      🟠 <%= error || 'No se pudieron cargar los valores oficiales en este momento.' %>
+      <span class="bw-muted">Los valores que ves en el resto de la web usan la revisión garantizada del servidor; esta página es informativa.</span>
+    </div>
+  <% } else { %>
+    <div class="bw-banner bw-banner-ok">
+      ✅ Valores vigentes · Revisión <strong><%= revision %></strong>
+      <% if (total) { %> · <strong><%= total %></strong> valores del CNI-BANCO<% } %>
+      · <a href="https://bop.laplaceta.org/cnic" target="_blank" rel="noopener" class="bw-inline-link">Catálogo oficial ↗</a>
+    </div>
+  <% } %>
+
+  <% if (ok && !grupos.length) { %>
+    <div class="bw-card"><div class="bw-empty">No hay valores del CNI-BANCO publicados por el Boletín.</div></div>
+  <% } %>
+
+  <% grupos.forEach(function(g) { %>
+    <div class="bw-card">
+      <h3><%= g.articulo %></h3>
+      <table class="bw-table">
+        <thead><tr><th>Código</th><th>Valor</th><th>Concepto</th></tr></thead>
+        <tbody>
+          <% g.items.forEach(function(v) { %>
+            <tr>
+              <td class="bw-muted">
+                <a href="<%= v.bopUrl %>" target="_blank" rel="noopener"><code><%= v.codigo %></code></a>
+              </td>
+              <td><strong><%= v.resumen || (v.numero != null ? v.numero + ' ' + v.unidad : '—') %></strong></td>
+              <td><%= v.etiqueta %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% }) %>
+</div>

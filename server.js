@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { loginUrl, validateToken } from "./lib/placetaid.js";
 import { getToken, setTokenCookie, clearTokenCookie } from "./lib/session.js";
 import { webGet, webPost } from "./lib/bancoApi.js";
+import { cargarValoresBancarios } from "./lib/bolp.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -160,6 +161,30 @@ function ultimosMeses(n) {
   }
   return lista;
 }
+
+// ── Valores oficiales (CNI-BANCO) en vivo desde el BOLP ────────────────
+// Página informativa: muestra la normativa vigente del Boletín Oficial de
+// La Placeta (server-side, sin CORS). Si el BOLP falla, se muestra un aviso
+// y la página NO bloquea (no hay cálculos locales en la web).
+app.get("/normativa", requireAuth, async (req, res) => {
+  const { valores, revision, ok, error } = await cargarValoresBancarios();
+  const grupos = new Map();
+  (valores || [])
+    .sort((a, b) => a.codigo.localeCompare(b.codigo))
+    .forEach((v) => {
+      const clave = v.articulo || "CNI-BANCO";
+      if (!grupos.has(clave)) grupos.set(clave, []);
+      grupos.get(clave).push(v);
+    });
+  res.render("normativa", {
+    grupos: Array.from(grupos, ([articulo, items]) => ({ articulo, items })),
+    total: (valores || []).length,
+    revision,
+    ok,
+    error,
+    active: "normativa"
+  });
+});
 
 app.get("/facturacion", requireAuth, async (req, res) => {
   const token = getToken(req);

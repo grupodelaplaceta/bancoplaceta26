@@ -14,6 +14,7 @@ Banca en línea ciudadana, **igualito a la app** (banco-app Android). Solo consu
 - Tarjetas digitales (número enmascarado, sin PIN).
 - Gestores y cotitulares.
 - Cumplimiento (censo, flags, estado IRM).
+- Normativa: valores oficiales del CNI-BANCO en vivo desde el BOLP (`/normativa`, server-side).
 - Transferencia: solicitud **pendiente** (requiere confirmación en PlacetaID Móvil; no mueve saldos hasta confirmarse).
 
 ## Puesta en marcha local

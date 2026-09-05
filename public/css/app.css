@@ -199,8 +199,13 @@ body.bw-theme {
 .bw-banner { border-radius: 13px; padding: 14px 16px; font-size: 14px; border: 1px solid; }
 .bw-banner-ok { background: rgba(22,163,74,.08); border-color: rgba(22,163,74,.3); color: #14643a; }
 .bw-banner-warn { background: rgba(255,138,0,.09); border-color: rgba(255,138,0,.35); color: #8a4b00; }
+.bw-banner a { color: inherit; text-decoration: underline; font-weight: 600; }
+.bw-banner a:hover { text-decoration: none; }
 .bw-alert { border-radius: 12px; padding: 12px 14px; font-size: 14px; }
 .bw-alert-error { background: rgba(255,77,109,.09); border: 1px solid rgba(255,77,109,.35); color: #c0153a; }
+
+.bw-table code { background: rgba(77,0,255,.07); color: var(--gdlp-text); padding: 1px 6px; border-radius: 6px; font-size: 12px; }
+.bw-table a { text-decoration: none; color: var(--gdlp-primary); }
 
 .bw-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: var(--bw-muted); }
 .bw-row strong { color: var(--gdlp-text); }
