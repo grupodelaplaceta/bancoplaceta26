@@ -62,6 +62,8 @@ app.get("/", requireAuth, async (req, res) => {
   const token = getToken(req);
   const r = await webGet(token, "/api/web/cuenta");
   if (r.status === 401) return res.redirect("/login");
+  // Un DIP de PlacetaID sin registro bancario se autorregistra (no es un error).
+  if (r.status === 404 && r.body?.error === "titular_no_encontrado") return res.redirect("/registro");
   if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudo conectar con el banco en este momento." });
   // Últimos movimientos para el resumen del inicio (igual que la app)
   const mv = await webGet(token, "/api/web/movimientos?limit=8");
@@ -69,7 +71,49 @@ app.get("/", requireAuth, async (req, res) => {
     usuario: r.body.usuario,
     cuentas: r.body.cuentas,
     movimientos: (mv.ok && mv.body.movimientos) || [],
+    alta: req.query.alta === "1",
     active: "inicio"
+  });
+});
+
+// ── Alta en el banco con el DIP de PlacetaID ─────────────────────────────
+// Cualquier DIP válido puede abrirse cuenta: PlacetaID identifica al titular,
+// el backend-banco busca por ese DIP si ya tenía cuentas (y en tal caso solo
+// las vincula: nunca se duplican) y solo si no hay nada abre una nueva.
+function renderRegistro(res, { consulta, resultado = null, error = null, status = 200 }) {
+  return res.status(status).render("registro", {
+    layout: false,
+    dip: consulta?.dip || null,
+    registrado: !!consulta?.registrado,
+    yaTeniaCuentas: !!consulta?.yaTeniaCuentas,
+    cuentas: consulta?.cuentas || [],
+    resultado,
+    error
+  });
+}
+
+app.get("/registro", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const r = await webGet(token, "/api/web/registro");
+  if (r.status === 401) return res.redirect("/login");
+  renderRegistro(res, {
+    consulta: r.ok ? r.body : null,
+    error: r.ok ? null : (r.body?.error || "No se pudo consultar tu situación en el banco.")
+  });
+});
+
+app.post("/registro", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const r = await webPost(token, "/api/web/registro", {});
+  if (r.status === 401) return res.redirect("/login");
+  const consulta = r.ok ? await webGet(token, "/api/web/registro") : null;
+  const resultado = r.ok ? r.body.registro : null;
+  // Menor de edad: la identidad queda registrada pero la cuenta la abre un tutor.
+  if (resultado && !resultado.requiereTutor) return res.redirect("/?alta=1");
+  renderRegistro(res, {
+    consulta: consulta?.ok ? consulta.body : null,
+    resultado,
+    error: r.ok ? null : (r.body?.error || "No se pudo completar el alta. Inténtalo de nuevo.")
   });
 });
 

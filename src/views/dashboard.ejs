@@ -10,6 +10,12 @@
     </div>
   </div>
 
+  <% if (typeof alta !== 'undefined' && alta) { %>
+    <div class="bw-banner bw-banner-ok" style="margin-bottom:14px">
+      ✅ Tu acceso al banco está activo. Ya puedes operar con tu identidad PlacetaID.
+    </div>
+  <% } %>
+
   <% if (cuentas.length) { %>
   <div class="bw-hero">
     <div class="bw-hero-label">Saldo total</div>

@@ -16,6 +16,9 @@ Banca en línea ciudadana, **igualito a la app** (banco-app Android). Solo consu
 - Cumplimiento (censo, flags, estado IRM).
 - Normativa: valores oficiales del CNI-BANCO en vivo desde el BOLP (`/normativa`, server-side).
 - Transferencia: solicitud **pendiente** (requiere confirmación en PlacetaID Móvil; no mueve saldos hasta confirmarse).
+- **Alta con PlacetaID** (`/registro`): cualquier DIP válido puede abrirse cuenta. Si el DIP
+  ya tiene cuentas en el banco, solo se vincula la identidad (no se duplica nada);
+  los menores de edad quedan registrados pero la cuenta la abre un tutor legal.
 
 ## Puesta en marcha local
 ```bash
@@ -32,3 +35,4 @@ npm start              # http://localhost:3003
 - `GET /api/web/cuenta` · `GET /api/web/movimientos` · `GET /api/web/tarjetas`
 - `GET /api/web/gestores` · `GET /api/web/cumplimiento` · `GET /api/web/contactos`
 - `POST /api/web/transferencia` (crea operación pendiente)
+- `GET /api/web/registro` (consulta por DIP) · `POST /api/web/registro` (alta/vinculación)

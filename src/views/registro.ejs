@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alta en el banco · Banco de La Placeta</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="bw-theme bw-login-body">
+  <div class="bw-login-card">
+    <div class="bw-brand bw-login-brand">
+      <span class="bw-brand-mark" style="margin:0 auto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9 20v-6h6v6"/></svg>
+      </span>
+      <h1>Banco de La Placeta</h1>
+      <p>Alta con tu identidad PlacetaID</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="bw-alert bw-alert-error"><%= error %></div>
+    <% } %>
+
+    <% if (dip) { %>
+      <p class="bw-login-foot" style="margin-bottom:12px">
+        DIP identificado en PlacetaID: <strong><%= dip %></strong>
+      </p>
+    <% } %>
+
+    <% if (resultado && resultado.requiereTutor) { %>
+      <div class="bw-alert bw-alert-error"><%= resultado.mensaje %></div>
+      <a class="bw-btn bw-btn-primary bw-btn-block" href="/auth/logout">Cerrar sesión</a>
+    <% } else if (error) { %>
+      <a class="bw-btn bw-btn-primary bw-btn-block" href="/">Volver al inicio</a>
+    <% } else if (yaTeniaCuentas) { %>
+      <p style="text-align:center;color:var(--gdlp-muted)">
+        Hemos encontrado <strong><%= cuentas.length %></strong>
+        cuenta<%= cuentas.length === 1 ? '' : 's' %> ya asociada<%= cuentas.length === 1 ? '' : 's' %> a tu DIP.
+        Al activar tu acceso no se duplica ninguna: solo se vincula tu identidad.
+      </p>
+      <ul style="text-align:left;color:var(--gdlp-muted);font-size:.9rem;margin:8px 0 14px;padding-left:18px">
+        <% cuentas.forEach(function (c) { %>
+          <li><%= c.displayName %> · <%= c.iban %> · <%= (c.balancePz || 0).toLocaleString('es-ES') %> Pz</li>
+        <% }) %>
+      </ul>
+      <form method="post" action="/registro">
+        <button class="bw-btn bw-btn-primary bw-btn-block" type="submit">Activar mi acceso al banco</button>
+      </form>
+    <% } else { %>
+      <p style="text-align:center;color:var(--gdlp-muted)">
+        Todavía no tienes cuenta en el Banco de La Placeta. Tu DIP de PlacetaID es
+        suficiente: te abrimos una cuenta corriente ciudadana (saldo 0) con IBAN
+        del banco.
+      </p>
+      <form method="post" action="/registro">
+        <button class="bw-btn bw-btn-primary bw-btn-block" type="submit">Abrir mi cuenta en el banco</button>
+      </form>
+    <% } %>
+
+    <a class="bw-btn bw-btn-block" href="/" style="margin-top:8px">Volver</a>
+    <p class="bw-login-foot">La identidad y el segundo factor se gestionan en <strong>PlacetaID</strong> (id.laplaceta.org).</p>
+  </div>
+</body>
+</html>
