@@ -27,8 +27,13 @@
     <% } %>
 
     <% if (resultado && resultado.requiereTutor) { %>
-      <div class="bw-alert bw-alert-error"><%= resultado.mensaje %></div>
-      <a class="bw-btn bw-btn-primary bw-btn-block" href="/auth/logout">Cerrar sesión</a>
+      <div class="bw-alert bw-alert-warn">
+        <strong>Eres menor de 16 años.</strong>
+        El Banco de La Placeta está dirigido a mayores de 16. Para menores de edad
+        existe <strong>Placeta Junior</strong>, una cuenta supervisada por un tutor legal.
+      </div>
+      <a class="bw-btn bw-btn-primary bw-btn-block" href="https://junior.laplaceta.org" target="_blank" rel="noopener">Ir a Placeta Junior</a>
+      <a class="bw-btn bw-btn-block" href="/auth/logout" style="margin-top:8px">Cerrar sesión</a>
     <% } else if (error) { %>
       <a class="bw-btn bw-btn-primary bw-btn-block" href="/">Volver al inicio</a>
     <% } else if (yaTeniaCuentas) { %>
