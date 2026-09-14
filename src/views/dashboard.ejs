@@ -5,7 +5,7 @@
 <div class="bw-page">
   <div class="bw-header">
     <div>
-      <h1>Hola, <%- usuario.displayName || usuario.dip %> 👋</h1>
+      <h1>Hola, <%= usuario.displayName || usuario.dip %> 👋</h1>
       <p class="bw-sub">DIP <strong><%= usuario.dip %></strong> · <%= usuario.censado ? 'Censado en Tributos' : 'Censo tributario pendiente' %></p>
     </div>
   </div>
@@ -20,7 +20,7 @@
   <div class="bw-hero">
     <div class="bw-hero-label">Saldo total</div>
     <div class="bw-hero-balance" data-count="<%= total %>">0</div>
-    <div class="bw-hero-owner"><%- usuario.displayName || usuario.dip %> · <%= cuentas.length %> cuenta<%= cuentas.length > 1 ? 's' : '' %></div>
+    <div class="bw-hero-owner"><%= usuario.displayName || usuario.dip %> · <%= cuentas.length %> cuenta<%= cuentas.length > 1 ? 's' : '' %></div>
     <div class="bw-actions">
       <a class="bw-action" href="/transferencia">
         <span class="bw-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10V6h10M7 10l4-4M17 14v4H7M17 14l-4 4"/></svg></span>
@@ -45,7 +45,7 @@
           <span class="bw-chip"><%= cuenta.type %></span>
           <span class="bw-chip <%= cuenta.complianceStatus === 'Clear' ? 'bw-chip-soft' : 'bw-chip-warn' %>"><%= cuenta.complianceStatus %></span>
         </div>
-        <div class="bw-account-name"><%- cuenta.displayName %></div>
+        <div class="bw-account-name"><%= cuenta.displayName %></div>
         <div class="bw-account-iban">
           <%= cuenta.ibanFull || cuenta.iban %>
           <button type="button" class="bw-copy" data-copy="<%= cuenta.ibanFull || cuenta.iban %>" title="Copiar IBAN" aria-label="Copiar IBAN">
@@ -72,7 +72,7 @@
         <% movimientos.slice(0, 5).forEach(function(m) { %>
           <tr>
             <td class="bw-muted" style="white-space:nowrap"><%= new Date(m.createdAt).toLocaleDateString('es-ES') %></td>
-            <td><%- m.concept || m.kind %></td>
+            <td><%= m.concept || m.kind %></td>
             <td class="<%= m.esEntrada ? 'bw-pos' : 'bw-neg' %>" style="text-align:right">
               <%= (m.esEntrada ? '+' : '−') %><%= m.amountPz.toLocaleString('es-ES') %> Pz
             </td>

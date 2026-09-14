@@ -14,7 +14,7 @@
     <% cuentas.forEach(function(c) { %>
       <div class="bw-card">
         <div class="bw-account-top">
-          <span class="bw-account-name"><%- c.displayName %></span>
+          <span class="bw-account-name"><%= c.displayName %></span>
           <span class="bw-chip <%= c.complianceStatus === 'Clear' ? 'bw-chip-soft' : 'bw-chip-danger' %>"><%= c.complianceStatus %></span>
         </div>
         <div class="bw-row">
@@ -39,7 +39,7 @@
           <% flags.forEach(function(f) { %>
             <tr>
               <td class="bw-muted"><%= new Date(f.createdAt).toLocaleDateString('es-ES') %></td>
-              <td><%- f.reason %></td>
+              <td><%= f.reason %></td>
               <td><%= f.amountPz.toLocaleString('es-ES') %> Pz</td>
               <td><span class="bw-chip bw-chip-soft"><%= f.status %></span></td>
             </tr>

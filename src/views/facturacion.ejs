@@ -22,12 +22,12 @@
       <strong>Pago de IVA solicitado</strong><br>
       Importe: <strong><%= resultado.importe.toLocaleString('es-ES') %> Pz</strong> · <%= resultado.facturas.length %> factura(s) · Empresa <%= resultado.eip %><br>
       Referencia: <code><%= resultado.id %></code> · Código de ejecución: <code><%= resultado.executionCode %></code><br>
-      <%- resultado.mensaje %>
+      <%= resultado.mensaje %>
     </div>
   <% } %>
 
   <% if (error) { %>
-    <div class="bw-alert bw-alert-error"><%- error %></div>
+    <div class="bw-alert bw-alert-error"><%= error %></div>
   <% } %>
 
   <% if (!facturacion) { %>
@@ -38,7 +38,7 @@
     <% facturacion.empresas.forEach(function(emp, ei) { %>
       <div class="bw-card" style="margin-bottom:18px">
         <div class="bw-account-top">
-          <span class="bw-account-name"><%- emp.nombre %></span>
+          <span class="bw-account-name"><%= emp.nombre %></span>
           <span class="bw-chip"><code><%= emp.eip %></code></span>
         </div>
         <div class="bw-row">
@@ -68,7 +68,7 @@
                     </td>
                     <td class="bw-muted"><code><%= f.id %></code></td>
                     <td class="bw-muted"><%= f.fecha %></td>
-                    <td><%- f.concepto %></td>
+                    <td><%= f.concepto %></td>
                     <td class="bw-muted"><code><%= f.cliente %></code></td>
                     <td style="text-align:right"><%= f.bruto.toLocaleString('es-ES') %> Pz</td>
                     <td style="text-align:right"><%= f.iva.toLocaleString('es-ES') %> Pz</td>
@@ -87,7 +87,7 @@
               <label>Cuenta de cargo (tuya)
                 <select name="from" required>
                   <% emp.cuentas.forEach(function(c) { %>
-                    <option value="<%= c.id %>"><%- c.displayName %> · <%= (c.saldo||0).toLocaleString('es-ES') %> Pz</option>
+                    <option value="<%= c.id %>"><%= c.displayName %> · <%= (c.saldo||0).toLocaleString('es-ES') %> Pz</option>
                   <% }) %>
                 </select>
               </label>

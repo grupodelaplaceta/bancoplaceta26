@@ -20,7 +20,7 @@
           <% movimientos.forEach(function(m) { %>
             <tr>
               <td class="bw-muted" style="white-space:nowrap"><%= new Date(m.createdAt).toLocaleString('es-ES') %></td>
-              <td><%- m.concept || m.kind %></td>
+              <td><%= m.concept || m.kind %></td>
               <td class="<%= m.esEntrada ? 'bw-pos' : 'bw-neg' %>" style="text-align:right">
                 <%= (m.esEntrada ? '+' : '−') %><%= m.amountPz.toLocaleString('es-ES') %> Pz
               </td>

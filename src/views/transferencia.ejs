@@ -9,12 +9,12 @@
       <strong>Solicitud registrada</strong><br>
       Referencia: <code><%= resultado.id %></code><br>
       Código de ejecución: <code><%= resultado.executionCode %></code><br>
-      <%- resultado.mensaje %>
+      <%= resultado.mensaje %>
     </div>
   <% } %>
 
   <% if (error) { %>
-    <div class="bw-alert bw-alert-error"><%- error %></div>
+    <div class="bw-alert bw-alert-error"><%= error %></div>
   <% } %>
 
   <div class="bw-card">
@@ -22,7 +22,7 @@
       <label>Cuenta origen (tuya)
         <select name="from" required>
           <% cuentas.forEach(function(c) { %>
-            <option value="<%= c.id %>"><%- c.displayName %> · <%= c.ibanFull || c.iban %></option>
+            <option value="<%= c.id %>"><%= c.displayName %> · <%= c.ibanFull || c.iban %></option>
           <% }) %>
         </select>
       </label>

@@ -10,7 +10,7 @@
           <span class="bw-chip"><%= t.tier %></span>
           <span class="bw-chip <%= t.frozen ? 'bw-chip-danger' : 'bw-chip-soft' %>"><%= t.frozen ? '❄️ Bloqueada' : '✅ Activa' %></span>
         </div>
-        <div class="bw-account-name"><%- t.alias %></div>
+        <div class="bw-account-name"><%= t.alias %></div>
         <div class="bw-card-number"><%= t.cardNumber %></div>
       </div>
     <% }) %>

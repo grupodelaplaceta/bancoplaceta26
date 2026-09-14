@@ -14,7 +14,7 @@
         <tbody>
           <% gestores.forEach(function(g) { %>
             <tr>
-              <td><strong><%- g.displayName %></strong> <span class="bw-muted">· <%= g.placetaId %></span></td>
+              <td><strong><%= g.displayName %></strong> <span class="bw-muted">· <%= g.placetaId %></span></td>
               <td><span class="bw-chip bw-chip-soft"><%= g.role %></span></td>
               <td><%= g.ownershipPercent %>%</td>
               <td class="bw-muted"><%= g.linkedAt ? new Date(g.linkedAt).toLocaleDateString('es-ES') : '—' %></td>
