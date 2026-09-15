@@ -6,7 +6,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { loginUrl, validateToken } from "./lib/placetaid.js";
 import { getToken, setTokenCookie, clearTokenCookie, getCuenta, setCuentaCookie } from "./lib/session.js";
-import { webGet, webPost } from "./lib/bancoApi.js";
+import { webGet, webPost, publicPaymentLink } from "./lib/bancoApi.js";
 import { cargarValoresBancarios } from "./lib/bolp.js";
 import { generarJustificanteDeclaracion } from "./lib/pdfJustificante.js";
 
@@ -33,6 +33,11 @@ function publicOrigin(req = null) {
   }
 
   return `http://localhost:${PORT}`;
+}
+
+function safeReturnTo(value) {
+  const candidate = String(value || "").trim();
+  return candidate.startsWith("/pagar/") && !candidate.startsWith("//") ? candidate : "/";
 }
 
 const APP_URL = publicOrigin();
@@ -98,12 +103,14 @@ app.post("/cuenta/seleccionar", requireAuth, (req, res) => {
 
 app.get("/login", (req, res) => {
   if (getToken(req)) return res.redirect("/");
-  const callbackUrl = `${publicOrigin(req)}/auth/callback`;
+  const returnTo = safeReturnTo(req.query.returnTo);
+  const callbackUrl = `${publicOrigin(req)}/auth/callback?returnTo=${encodeURIComponent(returnTo)}`;
   res.render("login", { layout: false, loginUrl: loginUrl(callbackUrl), error: req.query.error || null });
 });
 
 app.get("/auth/login", (req, res) => {
-  const callbackUrl = `${publicOrigin(req)}/auth/callback`;
+  const returnTo = safeReturnTo(req.query.returnTo);
+  const callbackUrl = `${publicOrigin(req)}/auth/callback?returnTo=${encodeURIComponent(returnTo)}`;
   res.redirect(loginUrl(callbackUrl));
 });
 
@@ -113,7 +120,7 @@ app.get("/auth/callback", async (req, res) => {
   const validated = await validateToken(token);
   if (!validated) return res.redirect("/login?error=token_invalido");
   setTokenCookie(res, token);
-  res.redirect("/");
+  res.redirect(safeReturnTo(req.query.returnTo));
 });
 
 app.post("/auth/logout", (req, res) => {
@@ -256,6 +263,20 @@ app.post("/bff/placezum/pagar", requireAuth, bff(async (req, res) => {
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
   return res.status(r.status).json(r.body);
 }));
+
+// Enlaces de pago: consulta pública firmada. No requiere sesión para poder
+// revisar el importe y el concepto antes de decidir cómo continuar.
+app.get("/pagar/:id", async (req, res) => {
+  const id = String(req.params.id || "").trim();
+  const signature = String(req.query.signature || "").trim();
+  if (!id || !signature) return res.status(400).render("payment-link", { link: null, signature, error: "Este enlace está incompleto o ha sido manipulado." });
+  const result = await publicPaymentLink(id, signature);
+  if (!result.ok) {
+    const status = result.status === 404 ? 404 : (result.status >= 400 && result.status < 500 ? result.status : 502);
+    return res.status(status).render("payment-link", { link: null, signature, error: result.body?.message || result.body?.error || "No se pudo verificar este enlace." });
+  }
+  return res.render("payment-link", { link: result.body.link, signature, error: null });
+});
 
 // SPA fallback: cualquier ruta de navegación del frontend sirve index.html.
 // Se excluyen login/registro/auth (EJS) y la API/BFF/estáticos.
