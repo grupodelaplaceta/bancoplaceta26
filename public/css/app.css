@@ -5,17 +5,17 @@
    Paleta púrpura, colores planos, tarjetas redondeadas, animaciones.
    ═══════════════════════════════════════════════════════════════ */
 :root {
-  --gdlp-primary: #4D00FF;
-  --gdlp-dark: #22005F;
-  --gdlp-light: #7B3DFF;
-  --gdlp-lighter: #A678FF;
+  --gdlp-primary: #3204D9;
+  --gdlp-dark: #150259;
+  --gdlp-light: #6B7FF2;
+  --gdlp-lighter: #6B7FF2;
   --gdlp-bg: #F8F6FF;
   --gdlp-surface: #FFFFFF;
   --gdlp-surface-alt: #F2ECFF;
-  --gdlp-text: #1B103B;
-  --gdlp-muted: #655A89;
-  --gdlp-textlight: #9A91BC;
-  --gdlp-border: #E5DEFF;
+  --gdlp-text: #150259;
+  --gdlp-muted: #4F4A73;
+  --gdlp-textlight: #7773A0;
+  --gdlp-border: #DDDDF4;
   --gdlp-pos: #16A34A;
   --gdlp-neg: #FF4D6D;
   --gdlp-warn: #FF8A00;
@@ -381,7 +381,7 @@ label {
 
 .bw-login-body {
   background: var(--gdlp-dark);
-  background-image: radial-gradient(circle at 15% 0, rgba(123, 61, 255, .55), transparent 38%), linear-gradient(145deg, #160c29, var(--gdlp-dark));
+  background-image: radial-gradient(circle at 15% 0, rgba(107, 127, 242, .55), transparent 38%), linear-gradient(145deg, #150259, var(--gdlp-dark));
 }
 
 .bw-login-card {
@@ -397,11 +397,11 @@ label {
 .bw-field textarea:focus,
 .bw-field select:focus {
   border-color: var(--gdlp-primary);
-  box-shadow: 0 0 0 3px rgba(77, 0, 255, .12);
+  box-shadow: 0 0 0 3px rgba(50, 4, 217, .12);
 }
 
 :focus-visible {
-  outline: 3px solid rgba(77, 0, 255, .35);
+  outline: 3px solid rgba(50, 4, 217, .35);
   outline-offset: 2px;
 }
 

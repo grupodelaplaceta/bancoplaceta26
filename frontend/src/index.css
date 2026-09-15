@@ -5,17 +5,17 @@
 @tailwind utilities;
 
 :root {
-  --gdlp-primary: #4d00ff;
-  --gdlp-dark: #22005f;
-  --gdlp-light: #7b3dff;
-  --gdlp-lighter: #a678ff;
+  --gdlp-primary: #3204D9;
+  --gdlp-dark: #150259;
+  --gdlp-light: #6B7FF2;
+  --gdlp-lighter: #6B7FF2;
   --gdlp-bg: #f8f6ff;
   --gdlp-surface: #ffffff;
   --gdlp-surface-alt: #f2ecff;
-  --gdlp-text: #1b103b;
-  --gdlp-muted: #655a89;
-  --gdlp-textlight: #9a91bc;
-  --gdlp-border: #e5deff;
+  --gdlp-text: #150259;
+  --gdlp-muted: #4f4a73;
+  --gdlp-textlight: #7773a0;
+  --gdlp-border: #ddddf4;
 }
 
 * {
@@ -238,13 +238,13 @@ select {
 
 /* Identidad Banco de La Placeta: superficie clara, morado plano y contraste oscuro. */
 :root {
-  --brand-purple: #5b22a8;
-  --brand-purple-strong: #42147f;
+  --brand-purple: #3204D9;
+  --brand-purple-strong: #21038C;
   --brand-purple-soft: #f1eafd;
-  --brand-ink: #211337;
-  --brand-muted: #70627f;
-  --brand-line: #e5dcef;
-  --brand-dark: #160c29;
+  --brand-ink: #150259;
+  --brand-muted: #4f4a73;
+  --brand-line: #ddddf4;
+  --brand-dark: #150259;
 }
 
 body {
