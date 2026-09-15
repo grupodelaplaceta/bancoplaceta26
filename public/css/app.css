@@ -80,9 +80,9 @@ body.bw-theme {
 .bw-link {
   color: var(--bw-muted);
   text-decoration: none;
-  padding: 11px 13px;
-  border-radius: 12px;
-  font-size: 14px;
+  padding: 12px 14px;
+  border-radius: 13px;
+  font-size: 15px;
   font-weight: 600;
   display: flex; align-items: center; gap: 11px;
   border: 1px solid transparent;
@@ -281,7 +281,7 @@ body {
   .bw-brand-mark { width: 34px; height: 34px; border-radius: 10px; }
   .bw-nav { flex-direction: row; gap: 2px; overflow-x: auto; flex: 1; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .bw-nav::-webkit-scrollbar { display: none; }
-  .bw-link { white-space: nowrap; padding: 9px 11px; font-size: 13px; }
+  .bw-link { white-space: nowrap; padding: 10px 12px; font-size: 14px; }
   .bw-link:hover { transform: none; }
   .bw-logout { margin: 0; }
   .bw-logout .bw-btn { padding: 8px 10px; font-size: 13px; }
