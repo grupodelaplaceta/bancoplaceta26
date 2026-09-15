@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import FluidOrb from "@/components/FluidOrb";
 import Icon from "@/components/Icon";
 import NotificationBell from "@/components/NotificationBell";
 import { Spinner } from "@/components/ui";
@@ -135,8 +134,8 @@ export default function App() {
     return (
       <div className="grid min-h-screen place-items-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-16 w-16 overflow-hidden rounded-full">
-            <FluidOrb size={64} color="#4D00FF" />
+          <div className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-extrabold text-white shadow-xl shadow-brand/20">
+            B
           </div>
           <Spinner className="!h-8 !w-8" />
           <p className="text-sm font-semibold text-brand-dark/60">Cargando tu banco…</p>
@@ -159,7 +158,7 @@ export default function App() {
       {menuOpen && <button type="button" className="mobile-scrim" aria-label="Cerrar menú" onClick={() => setMenuOpen(false)} />}
       <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         <div className="flex items-center gap-3 px-2">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand to-brand-light font-extrabold text-white">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand text-white font-extrabold shadow-lg shadow-brand/20">
             B
           </span>
           <div className="min-w-0">

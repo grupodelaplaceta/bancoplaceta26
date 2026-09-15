@@ -235,3 +235,77 @@ select {
     transition-duration: .01ms !important;
   }
 }
+
+/* Identidad Banco de La Placeta: superficie clara, morado plano y contraste oscuro. */
+:root {
+  --brand-purple: #5b22a8;
+  --brand-purple-strong: #42147f;
+  --brand-purple-soft: #f1eafd;
+  --brand-ink: #211337;
+  --brand-muted: #70627f;
+  --brand-line: #e5dcef;
+  --brand-dark: #160c29;
+}
+
+body {
+  background: var(--gdlp-bg);
+  color: var(--brand-ink);
+}
+
+.sidebar {
+  background: #fff;
+  border-right-color: var(--brand-line);
+  box-shadow: 10px 0 32px rgba(33, 19, 55, .035);
+}
+
+.account-selector {
+  background: var(--brand-purple-soft);
+  border: 1px solid var(--brand-line);
+}
+
+.nav-item:hover,
+.nav-item-active {
+  background: var(--brand-purple);
+  color: #fff;
+}
+
+.nav-item-active::before {
+  content: "";
+  width: 3px;
+  height: 18px;
+  border-radius: 999px;
+  background: #fff;
+  margin-left: -8px;
+}
+
+.main { max-width: 1160px; }
+
+.header h1,
+.page-loading span,
+button,
+select,
+.eyebrow,
+.nav-group,
+.nav-item {
+  font-family: "Montserrat Alternates", "Plus Jakarta Sans", sans-serif;
+}
+
+.page-loading {
+  min-height: 300px;
+  color: var(--brand-muted);
+}
+
+.mobile-menu-button {
+  background: var(--brand-purple);
+  border-color: var(--brand-purple);
+  color: #fff;
+}
+
+@media (max-width: 820px) {
+  .sidebar { box-shadow: 18px 0 48px rgba(22, 12, 41, .28); }
+}
+
+:focus-visible {
+  outline: 3px solid rgba(91, 34, 168, .35);
+  outline-offset: 2px;
+}

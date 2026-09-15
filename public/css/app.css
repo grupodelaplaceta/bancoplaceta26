@@ -322,3 +322,85 @@ body {
 
 .bw-nav-group { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1.1px; color:var(--gdlp-textlight); padding:14px 13px 6px; }
 .bw-nav-group:first-child { padding-top:8px; }
+
+/* Refuerzo de marca compartido con la app Android. */
+body.bw-theme {
+  background: var(--gdlp-bg);
+  color: var(--gdlp-text);
+}
+
+.bw-sidebar {
+  box-shadow: 10px 0 32px rgba(33, 19, 55, .035);
+}
+
+.bw-brand-mark {
+  background: var(--gdlp-primary);
+  box-shadow: 0 8px 20px rgba(77, 0, 255, .28);
+}
+
+.bw-link.active {
+  background: var(--gdlp-primary);
+  border-color: var(--gdlp-primary);
+}
+
+.bw-card,
+.bw-table-wrap,
+.bw-panel {
+  border-color: var(--gdlp-border);
+  box-shadow: 0 5px 18px rgba(34, 0, 95, .055);
+}
+
+.bw-btn-primary,
+.bw-btn-primary:hover {
+  background: var(--gdlp-primary);
+  border-color: var(--gdlp-primary);
+}
+
+.bw-btn-primary:hover { filter: brightness(.9); }
+
+.bw-header h1,
+.bw-page h2,
+.bw-page h3,
+.bw-page h4,
+.bw-brand,
+.bw-nav a,
+.bw-btn,
+button,
+select,
+label {
+  font-family: "Montserrat Alternates", "Plus Jakarta Sans", sans-serif;
+}
+
+.bw-page p,
+.bw-page td,
+.bw-page th,
+.bw-page input,
+.bw-page textarea {
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+.bw-login-body {
+  background: var(--gdlp-dark);
+  background-image: radial-gradient(circle at 15% 0, rgba(123, 61, 255, .55), transparent 38%), linear-gradient(145deg, #160c29, var(--gdlp-dark));
+}
+
+.bw-login-card {
+  border-color: rgba(255,255,255,.18);
+  box-shadow: 0 28px 80px rgba(0,0,0,.3);
+}
+
+.bw-login-brand h1,
+.bw-login-brand p { font-family: "Montserrat Alternates", sans-serif; }
+
+.bw-account-switcher select:focus,
+.bw-field input:focus,
+.bw-field textarea:focus,
+.bw-field select:focus {
+  border-color: var(--gdlp-primary);
+  box-shadow: 0 0 0 3px rgba(77, 0, 255, .12);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(77, 0, 255, .35);
+  outline-offset: 2px;
+}
