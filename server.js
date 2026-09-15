@@ -285,6 +285,32 @@ app.get("/tributos", requireAuth, async (req, res) => {
   res.render("tributos", { t: r.body || {}, active: "tributos" });
 });
 
+app.get("/placezum", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const r = await webGet(token, "/api/web/cuenta");
+  if (r.status === 401) return res.redirect("/login");
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudo cargar tu información." });
+  res.render("placezum", { cuentas: r.body.cuentas || [], resultado: null, error: null, active: "placezum" });
+});
+
+app.post("/placezum", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const { from, destinatarios } = req.body || {};
+  const lista = String(destinatarios || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((l) => {
+    const p = l.split(/[,\s]+/);
+    return { to: p[0], cantidad: Number(p[1]) };
+  }).filter((d) => d.to && d.cantidad > 0);
+  const r = await webPost(token, "/api/web/placezum", { from, destinatarios: lista });
+  if (r.status === 401) return res.redirect("/login");
+  const cuentaR = await webGet(token, "/api/web/cuenta");
+  res.render("placezum", {
+    cuentas: (cuentaR.ok && cuentaR.body.cuentas) || [],
+    resultado: r.ok ? r.body.placezum : null,
+    error: r.ok ? null : (r.body.error || "No se pudo registrar el envío PlaceZUM."),
+    active: "placezum"
+  });
+});
+
 // ── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).render("error", { layout: false, mensaje: "Página no encontrada." }));
 
