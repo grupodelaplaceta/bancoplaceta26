@@ -285,6 +285,14 @@ app.get("/tributos", requireAuth, async (req, res) => {
   res.render("tributos", { t: r.body || {}, active: "tributos" });
 });
 
+app.get("/inversiones", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const r = await webGet(token, "/api/web/inversiones");
+  if (r.status === 401) return res.redirect("/login");
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudieron cargar las inversiones." });
+  res.render("inversiones", { inv: r.body || {}, active: "inversiones" });
+});
+
 app.get("/placezum", requireAuth, async (req, res) => {
   const token = getToken(req);
   const r = await webGet(token, "/api/web/cuenta");

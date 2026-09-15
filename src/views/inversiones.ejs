@@ -1,0 +1,54 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <div>
+      <h1>Inversiones</h1>
+      <p class="bw-sub">Tu cartera de activos y operaciones</p>
+    </div>
+  </div>
+
+  <% var holdings = inv.holdings || []; %>
+  <% var operaciones = inv.operaciones || []; %>
+
+  <% if (!holdings.length && !operaciones.length) { %>
+    <div class="bw-card bw-empty">No tienes inversiones registradas.</div>
+  <% } else { %>
+
+    <% if (holdings.length) { %>
+      <div class="bw-card">
+        <div class="bw-account-top"><strong>Posiciones</strong></div>
+        <table class="bw-table">
+          <thead><tr><th>Activo</th><th>Unidades</th><th style="text-align:right">Valor actual</th></tr></thead>
+          <tbody>
+            <% holdings.forEach(function (h) { %>
+              <tr>
+                <td><%= h.assetName %></td>
+                <td><%= h.units %></td>
+                <td style="text-align:right" class="bw-pos"><%= (h.currentValuePz || 0).toLocaleString('es-ES') %> Pz</td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+
+    <% if (operaciones.length) { %>
+      <div class="bw-card" style="margin-top:16px">
+        <div class="bw-account-top"><strong>Operaciones</strong></div>
+        <table class="bw-table">
+          <thead><tr><th>Activo</th><th>Importe</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <tbody>
+            <% operaciones.forEach(function (o) { %>
+              <tr>
+                <td><%= o.assetName %></td>
+                <td><%= (o.amountPz || 0).toLocaleString('es-ES') %> Pz</td>
+                <td class="bw-muted"><%= o.createdAt ? new Date(o.createdAt).toLocaleDateString('es-ES') : '—' %></td>
+                <td><span class="bw-chip <%= o.settledAt ? 'bw-chip-soft' : 'bw-chip-warn' %>"><%= o.settledAt ? 'Liquidada' : 'Pendiente' %></span></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+
+  <% } %>
+</div>
