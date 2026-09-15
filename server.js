@@ -333,23 +333,35 @@ app.get("/placezum", requireAuth, async (req, res) => {
   const r = await webGet(token, "/api/web/cuenta");
   if (r.status === 401) return res.redirect("/login");
   if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudo cargar tu información." });
-  res.render("placezum", { cuentas: r.body.cuentas || [], resultado: null, error: null, active: "placezum" });
+  res.render("placezum", { cuentas: r.body.cuentas || [], codigo: null, resultado: null, error: null, active: "placezum" });
 });
 
-app.post("/placezum", requireAuth, async (req, res) => {
+app.post("/placezum/codigo", requireAuth, async (req, res) => {
   const token = getToken(req);
-  const { from, destinatarios } = req.body || {};
-  const lista = String(destinatarios || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((l) => {
-    const p = l.split(/[,\s]+/);
-    return { to: p[0], cantidad: Number(p[1]) };
-  }).filter((d) => d.to && d.cantidad > 0);
-  const r = await webPost(token, "/api/web/placezum", { from, destinatarios: lista });
+  const { from } = req.body || {};
+  const r = await webPost(token, "/api/web/placezum/codigo", { from });
   if (r.status === 401) return res.redirect("/login");
   const cuentaR = await webGet(token, "/api/web/cuenta");
   res.render("placezum", {
     cuentas: (cuentaR.ok && cuentaR.body.cuentas) || [],
+    codigo: r.ok ? r.body.codigo : null,
+    resultado: null,
+    error: r.ok ? null : (r.body.error || "No se pudo generar el código PlaceZUM."),
+    active: "placezum"
+  });
+});
+
+app.post("/placezum/pagar", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const { from, codigo, cantidad, concepto } = req.body || {};
+  const r = await webPost(token, "/api/web/placezum/pagar", { from, codigo, cantidad: Number(cantidad), concepto });
+  if (r.status === 401) return res.redirect("/login");
+  const cuentaR = await webGet(token, "/api/web/cuenta");
+  res.render("placezum", {
+    cuentas: (cuentaR.ok && cuentaR.body.cuentas) || [],
+    codigo: null,
     resultado: r.ok ? r.body.placezum : null,
-    error: r.ok ? null : (r.body.error || "No se pudo registrar el envío PlaceZUM."),
+    error: r.ok ? null : (r.body.error || "No se pudo realizar el pago PlaceZUM."),
     active: "placezum"
   });
 });

@@ -2,38 +2,57 @@
   <div class="bw-header">
     <div>
       <h1>PlaceZUM</h1>
-      <p class="bw-sub">Envía Placetas a varios destinatarios en un solo zum</p>
+      <p class="bw-sub">Paga y cobra con un código temporal de 5 dígitos</p>
     </div>
   </div>
 
+  <% if (codigo) { %>
+    <div class="bw-banner bw-banner-ok">
+      <div class="bw-muted" style="margin-bottom:4px">Tu código PlaceZUM (caduca en 2 minutos)</div>
+      <div style="font-size:34px;font-weight:800;letter-spacing:6px;font-family:monospace"><%= codigo.code %></div>
+      <div class="bw-muted" style="margin-top:4px">Comparte este código para que te paguen a <%= codigo.iban %></div>
+    </div>
+  <% } %>
+
   <% if (resultado) { %>
-    <div class="bw-banner bw-banner-ok" style="margin-bottom:14px">
+    <div class="bw-banner bw-banner-ok">
       ✅ <%= resultado.mensaje %>
-      <div class="bw-muted" style="margin-top:4px">
-        Total <strong><%= resultado.total.toLocaleString('es-ES') %> Pz</strong> · <%= resultado.enviados %> destinatario(s) · zum <code><%= resultado.id %></code>
-      </div>
+      <div class="bw-muted" style="margin-top:4px">Referencia: <code><%= resultado.id %></code></div>
     </div>
   <% } %>
 
   <% if (error) { %>
-    <div class="bw-alert bw-alert-error" style="margin-bottom:14px"><%= error %></div>
+    <div class="bw-alert bw-alert-error"><%= error %></div>
   <% } %>
 
-  <div class="bw-card">
-    <form method="post" action="/placezum">
-      <div class="bw-account-top" style="margin-bottom:10px"><strong>Nuevo envío</strong></div>
+  <div class="bw-grid">
+    <div class="bw-card">
+      <div class="bw-account-top"><strong>Cobrar (generar código)</strong></div>
+      <p class="bw-muted" style="font-size:13px;margin:0 0 12px">Genera un código para tu cuenta y compártelo con quien quiera pagarte.</p>
+      <form method="post" action="/placezum/codigo">
+        <select name="from" style="width:100%;padding:10px;border-radius:10px;margin-bottom:12px">
+          <% cuentas.forEach(function(c) { %>
+            <option value="<%= c.id %>" <%= c.id === cuentaActiva ? 'selected' : '' %>><%= c.displayName %> · <%= (c.balancePz || 0).toLocaleString('es-ES') %> Pz</option>
+          <% }) %>
+        </select>
+        <button class="bw-btn bw-btn-primary bw-btn-block" type="submit">Generar código</button>
+      </form>
+    </div>
 
-      <label class="bw-muted" style="display:block;margin-bottom:4px">Cuenta de origen</label>
-      <select name="from" style="width:100%;padding:10px;border-radius:10px;margin-bottom:14px">
-        <% cuentas.forEach(function (c) { %>
-          <option value="<%= c.id %>" <%= c.id === cuentaActiva ? 'selected' : '' %>><%= c.displayName %> · <%= (c.balancePz || 0).toLocaleString('es-ES') %> Pz</option>
-        <% }) %>
-      </select>
-
-      <label class="bw-muted" style="display:block;margin-bottom:4px">Destinatarios (uno por línea: IBAN/DIP y cantidad)</label>
-      <textarea name="destinatarios" rows="6" placeholder="GDLP-AP00-000 100&#10;GDLP-AP11-111 50" style="width:100%;padding:10px;border-radius:10px;margin-bottom:14px;font-family:monospace"></textarea>
-
-      <button class="bw-btn bw-btn-primary bw-btn-block" type="submit">Enviar PlaceZUM</button>
-    </form>
+    <div class="bw-card">
+      <div class="bw-account-top"><strong>Pagar (introducir código)</strong></div>
+      <p class="bw-muted" style="font-size:13px;margin:0 0 12px">Introduce el código PlaceZUM de quien quieras pagar.</p>
+      <form method="post" action="/placezum/pagar">
+        <select name="from" style="width:100%;padding:10px;border-radius:10px;margin-bottom:12px">
+          <% cuentas.forEach(function(c) { %>
+            <option value="<%= c.id %>" <%= c.id === cuentaActiva ? 'selected' : '' %>><%= c.displayName %> · <%= (c.balancePz || 0).toLocaleString('es-ES') %> Pz</option>
+          <% }) %>
+        </select>
+        <input name="codigo" inputmode="numeric" maxlength="5" placeholder="Código de 5 dígitos" required autocomplete="off" style="width:100%;padding:10px;border-radius:10px;margin-bottom:12px;text-align:center;font-size:20px;letter-spacing:6px;font-family:monospace">
+        <input name="cantidad" type="number" min="1" step="1" placeholder="Cantidad (Pz)" required style="width:100%;padding:10px;border-radius:10px;margin-bottom:12px">
+        <input name="concepto" placeholder="Concepto (opcional)" autocomplete="off" style="width:100%;padding:10px;border-radius:10px;margin-bottom:12px">
+        <button class="bw-btn bw-btn-primary bw-btn-block" type="submit">Pagar con PlaceZUM</button>
+      </form>
+    </div>
   </div>
 </div>
