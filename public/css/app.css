@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
 /* ═══════════════════════════════════════════════════════════════
    Banco de La Placeta · Web — diseño GDLP (igual que la app)
    Paleta púrpura, colores planos, tarjetas redondeadas, animaciones.
@@ -241,7 +243,11 @@ body.bw-theme {
 .bw-form .bw-hint { font-size: 12px; color: var(--bw-muted); font-weight: 400; }
 
 /* ── Login / error ────────────────────────────────────── */
-.bw-login-body {
+.bw-login-h1, h2, h3, h4, h5, h6, .bw-brand, .bw-nav a, button, select {
+  font-family: "Montserrat Alternates", "Plus Jakarta Sans", sans-serif;
+}
+
+body {
   display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;
 }
 .bw-login-card {

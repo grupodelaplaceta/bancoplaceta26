@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,6 +37,15 @@ body {
     var(--gdlp-bg);
   color: var(--gdlp-text);
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6,
+.eyebrow,
+.nav-group,
+.nav-item,
+button,
+select {
+  font-family: "Montserrat Alternates", "Plus Jakarta Sans", sans-serif;
 }
 
 .app-shell {
