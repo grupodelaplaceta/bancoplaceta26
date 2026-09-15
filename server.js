@@ -278,17 +278,10 @@ app.get("/pagar/:id", async (req, res) => {
   return res.render("payment-link", { link: result.body.link, signature, error: null });
 });
 
-// SPA fallback: cualquier ruta de navegación del frontend sirve index.html.
-// Se excluyen login/registro/auth (EJS) y la API/BFF/estáticos.
-if (REACT_READY) {
-  app.get(/^(?!\/(assets|bff|api|login|auth|registro|cuenta|logout)\b).*/, requireAuth, (req, res) => {
-    res.sendFile(path.join(DIST, "index.html"));
-  });
-}
-
 // ── Páginas protegidas (server-side render, solo datos del titular) ─────────
-app.get("/", requireAuth, async (req, res) => {
+app.get("/", async (req, res, next) => {
   const token = getToken(req);
+  if (!token) return res.render("public-home", { layout: false });
   const r = await webGet(token, "/api/web/cuenta");
   if (r.status === 401) return res.redirect("/login");
   // Un DIP de PlacetaID sin registro bancario se autorregistra (no es un error).
@@ -305,6 +298,15 @@ app.get("/", requireAuth, async (req, res) => {
     active: "inicio"
   });
 });
+
+
+// SPA fallback: cualquier ruta de navegación del frontend sirve index.html.
+// Se excluyen login/registro/auth (EJS) y la API/BFF/estáticos.
+if (REACT_READY) {
+  app.get(/^(?!\/(assets|bff|api|login|auth|registro|cuenta|logout)\b).*/, requireAuth, (req, res) => {
+    res.sendFile(path.join(DIST, "index.html"));
+  });
+}
 
 // ── Alta en el banco con el DIP de PlacetaID ─────────────────────────────
 // Cualquier DIP válido puede abrirse cuenta: PlacetaID identifica al titular,
