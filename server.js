@@ -374,6 +374,13 @@ app.get("/tributos/:id/pdf", requireAuth, async (req, res) => {
 // ── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).render("error", { layout: false, mensaje: "Página no encontrada." }));
 
+// Manejador global de errores: evita crashes por excepciones en rutas async.
+app.use((err, req, res, next) => {
+  console.error("[banco-web]", err);
+  if (res.headersSent) return next(err);
+  res.status(500).render("error", { layout: false, mensaje: "Algo salió mal. Inténtalo de nuevo en unos momentos." });
+});
+
 // Solo escucha si es el servidor local (en Vercel lo hace api/index.js)
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
