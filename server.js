@@ -13,7 +13,29 @@ import { generarJustificanteDeclaracion } from "./lib/pdfJustificante.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3003;
-const APP_URL = (process.env.APP_URL || `http://localhost:${PORT}`).replace(/\/+$/, "");
+
+// En Vercel no se debe construir el login con localhost. APP_URL tiene
+// prioridad para dominios propios; después usamos las variables oficiales de
+// Vercel y dejamos localhost únicamente para desarrollo local.
+function publicOrigin(req = null) {
+  const configured = String(process.env.APP_URL || "").trim().replace(/\/+$/, "");
+  if (configured && !/localhost|127\.0\.0\.1/i.test(configured)) return configured;
+
+  const vercelOrigin = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  if (vercelOrigin) return `https://${String(vercelOrigin).replace(/^https?:\/\//, "").replace(/\/+$/, "")}`;
+
+  if (req) {
+    const forwardedHost = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim();
+    if (forwardedHost && !/localhost|127\.0\.0\.1/i.test(forwardedHost)) {
+      const forwardedProto = String(req.headers["x-forwarded-proto"] || "https").split(",")[0].trim();
+      return `${forwardedProto}://${forwardedHost}`.replace(/\/+$/, "");
+    }
+  }
+
+  return `http://localhost:${PORT}`;
+}
+
+const APP_URL = publicOrigin();
 const CALLBACK_URL = `${APP_URL}/auth/callback`;
 
 app.set("view engine", "ejs");
@@ -70,10 +92,14 @@ app.post("/cuenta/seleccionar", requireAuth, (req, res) => {
 
 app.get("/login", (req, res) => {
   if (getToken(req)) return res.redirect("/");
-  res.render("login", { layout: false, loginUrl: loginUrl(CALLBACK_URL), error: req.query.error || null });
+  const callbackUrl = `${publicOrigin(req)}/auth/callback`;
+  res.render("login", { layout: false, loginUrl: loginUrl(callbackUrl), error: req.query.error || null });
 });
 
-app.get("/auth/login", (req, res) => res.redirect(loginUrl(CALLBACK_URL)));
+app.get("/auth/login", (req, res) => {
+  const callbackUrl = `${publicOrigin(req)}/auth/callback`;
+  res.redirect(loginUrl(callbackUrl));
+});
 
 app.get("/auth/callback", async (req, res) => {
   const { token } = req.query;

@@ -29,7 +29,13 @@ npm start              # http://localhost:3003
 
 ## Despliegue (Vercel)
 - Repo propio con `vercel.json` (rewrite a `api/index.js`).
-- Variables: `APP_URL`, `PLACETA_ID_BASE_URL`, `BANCO_API_URL`.
+- Variables obligatorias/recomendadas:
+  - `APP_URL=https://bancoplaceta26.vercel.app` (o el dominio de producción configurado).
+  - `PLACETA_ID_CLIENT_ID=79d7087aa027fac0250e832c4b5d39b2` (solicitante registrado en PlacetaID; si PlacetaID asigna otro ID al banco, sustituirlo).
+  - `PLACETA_ID_BASE_URL=https://id.laplaceta.org`.
+  - `BANCO_API_URL=https://api.banco.laplaceta.org`.
+- El login envía a PlacetaID `client_id`, `redirect_uri`, `platform=web` y `from`.
+- El callback se calcula con `APP_URL`; si falta, usa `VERCEL_PROJECT_PRODUCTION_URL`/`VERCEL_URL`. Solo en desarrollo local usa `http://localhost:3003`. Nunca se genera localhost en producción.
 
 ## API consumida
 - `GET /api/web/cuenta` · `GET /api/web/movimientos` · `GET /api/web/tarjetas`
