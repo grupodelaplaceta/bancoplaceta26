@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import expressLayouts from "express-ejs-layouts";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import { loginUrl, validateToken } from "./lib/placetaid.js";
 import { getToken, setTokenCookie, clearTokenCookie, getCuenta, setCuentaCookie } from "./lib/session.js";
@@ -21,6 +22,12 @@ app.set("layout", "layout");
 app.use(expressLayouts);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
+
+// Frontend React (rareui) precompilado. Se sirve antes que las rutas EJS para
+// que, cuando esté construido, sea la UI principal del banco-web.
+const DIST = path.join(__dirname, "frontend", "dist");
+const REACT_READY = fs.existsSync(path.join(DIST, "index.html"));
+if (REACT_READY) app.use(express.static(DIST));
 
 // Cabeceras de seguridad + no-store (FASE 1.5)
 app.use((req, res, next) => {
@@ -81,6 +88,150 @@ app.post("/auth/logout", (req, res) => {
   clearTokenCookie(res);
   res.redirect("/login");
 });
+
+// ── BFF JSON para el frontend React (misma autenticación por cookie) ──────
+// El frontend React (rareui) consume estos endpoints relativos; el token
+// PlacetaID se usa solo server-side, igual que en las vistas EJS.
+function bff(fn) {
+  return async (req, res) => {
+    try {
+      await fn(req, res);
+    } catch (e) {
+      console.error("[bff]", e);
+      if (!res.headersSent) res.status(500).json({ error: "bff_error" });
+    }
+  };
+}
+
+function bffGet(token, path) {
+  return webGet(token, path);
+}
+function bffPost(token, path, body) {
+  return webPost(token, path, body);
+}
+
+app.get("/bff/me", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffGet(token, "/api/web/cuenta");
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (r.status === 404 && r.body?.error === "titular_no_encontrado") return res.status(404).json({ error: "titular_no_encontrado" });
+  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  const cuentas = r.body.cuentas || [];
+  const sel = getCuenta(req);
+  const cuentaActiva = sel && cuentas.some((c) => c.id === sel) ? sel : (cuentas[0]?.id || null);
+  return res.json({ usuario: r.body.usuario, cuentas, cuentaActiva });
+}));
+
+app.get("/bff/movimientos", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const cuenta = String(req.query.cuenta || getCuenta(req) || "");
+  const limit = Number(req.query.limit) || 200;
+  const q = "?limit=" + encodeURIComponent(limit) + (cuenta ? "&cuenta=" + encodeURIComponent(cuenta) : "");
+  const r = await bffGet(token, "/api/web/movimientos" + q);
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  return res.json(r.body);
+}));
+
+app.get("/bff/tarjetas", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const cuenta = String(req.query.cuenta || getCuenta(req) || "");
+  const r = await bffGet(token, "/api/web/tarjetas" + (cuenta ? "?cuenta=" + encodeURIComponent(cuenta) : ""));
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  return res.json(r.body);
+}));
+
+app.get("/bff/gestores", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffGet(token, "/api/web/gestores");
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  return res.json(r.body);
+}));
+
+app.get("/bff/inversiones", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffGet(token, "/api/web/inversiones");
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  return res.json(r.body);
+}));
+
+app.get("/bff/nominas", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffGet(token, "/api/web/nominas");
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  return res.json(r.body);
+}));
+
+app.get("/bff/tributos", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffGet(token, "/api/web/tributos");
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  return res.json(r.body);
+}));
+
+app.get("/bff/facturacion", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffGet(token, "/api/web/facturacion");
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  return res.json(r.body);
+}));
+
+app.get("/bff/subvenciones", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffGet(token, "/api/web/subvenciones");
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  return res.json(r.body);
+}));
+
+app.get("/bff/cumplimiento", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffGet(token, "/api/web/cumplimiento");
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  return res.json(r.body);
+}));
+
+app.post("/bff/cuenta/seleccionar", requireAuth, bff(async (req, res) => {
+  const cuenta = String((req.body || {}).cuenta || "").trim();
+  if (cuenta) setCuentaCookie(res, cuenta);
+  return res.json({ ok: true, cuenta });
+}));
+
+app.post("/bff/transferencia", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffPost(token, "/api/web/transferencia", req.body || {});
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  return res.status(r.status).json(r.body);
+}));
+
+app.post("/bff/placezum/codigo", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffPost(token, "/api/web/placezum/codigo", req.body || {});
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  return res.status(r.status).json(r.body);
+}));
+
+app.post("/bff/placezum/pagar", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffPost(token, "/api/web/placezum/pagar", req.body || {});
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  return res.status(r.status).json(r.body);
+}));
+
+// SPA fallback: cualquier ruta de navegación del frontend sirve index.html.
+// Se excluyen login/registro/auth (EJS) y la API/BFF/estáticos.
+if (REACT_READY) {
+  app.get(/^(?!\/(assets|bff|api|login|auth|registro|cuenta|logout)\b).*/, requireAuth, (req, res) => {
+    res.sendFile(path.join(DIST, "index.html"));
+  });
+}
 
 // ── Páginas protegidas (server-side render, solo datos del titular) ─────────
 app.get("/", requireAuth, async (req, res) => {
