@@ -74,6 +74,7 @@ function useHashRoute() {
 export default function App() {
   const route = useHashRoute();
   const [me, setMe] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cuentaId, setCuentaId] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -86,8 +87,13 @@ export default function App() {
         if (!alive) return;
         setMe(r);
         setCuentaId(r.cuentaActiva || r.cuentas?.[0]?.id || null);
+        setLoading(false);
       })
-      .catch((e) => alive && setError(e.message));
+      .catch((e) => {
+        if (!alive) return;
+        setError(e.message);
+        setLoading(false);
+      });
     return () => {
       alive = false;
     };
@@ -100,6 +106,7 @@ export default function App() {
 
   const seleccionarCuenta = async (id) => {
     setCuentaId(id);
+    if (route !== "inicio") window.location.hash = "inicio";
     try {
       await api.seleccionarCuenta(id);
     } catch {
@@ -107,8 +114,14 @@ export default function App() {
     }
   };
 
-  const Page = PAGES[route] || Dashboard;
-  const currentItem = NAV.flatMap((section) => section.items).find((item) => item.id === route);
+  const tipoCuenta = String(cuenta?.type || "").toLowerCase();
+  const cuentaJunior = tipoCuenta === "junior" || tipoCuenta.includes("juvenil");
+  const navVisible = useMemo(() => cuentaJunior
+    ? NAV.map((section) => ({ ...section, items: section.items.filter((item) => ["inicio", "movimientos", "transferencia", "placezum", "normativa"].includes(item.id)) })).filter((section) => section.items.length)
+    : NAV, [cuentaJunior]);
+  const currentItem = navVisible.flatMap((section) => section.items).find((item) => item.id === route);
+  const activeRoute = currentItem ? route : "inicio";
+  const Page = PAGES[activeRoute] || Dashboard;
 
   if (error) {
     return (
@@ -132,13 +145,12 @@ export default function App() {
 
   if (!me) {
     return (
-      <div className="grid min-h-screen place-items-center">
-        <div className="flex flex-col items-center gap-3">
+      <div className="app-loading-screen" role="status" aria-live="polite">
+        <div className="app-loading-panel">
           <div className="brand-loading-mark" aria-label="Banco de La Placeta">
-            <img src="/img/logobancosobreblanco.png" alt="Banco de La Placeta" />
+            <img src="/img/bancologosobreoscuro.png" alt="Banco de La Placeta" />
           </div>
-          <Spinner className="!h-8 !w-8" />
-          <p className="text-sm font-semibold text-brand-dark/60">Cargando tu banco…</p>
+          {loading ? <><Spinner className="!h-8 !w-8" /><p>Cargando tu banco…</p></> : <button type="button" className="loading-retry" onClick={() => window.location.reload()}>Reintentar conexión</button>}
         </div>
       </div>
     );
@@ -177,7 +189,7 @@ export default function App() {
         </div>
 
         <nav className="nav">
-          {NAV.map((section) => (
+          {navVisible.map((section) => (
             <div key={section.group} className="mb-1">
               <p className="nav-group">{section.group}</p>
               {section.items.map((item) => {

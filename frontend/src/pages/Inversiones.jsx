@@ -2,20 +2,20 @@ import { useEffect, useState } from "react";
 import { Card, SectionTitle, Skeleton, EmptyState, Badge } from "@/components/ui";
 import { api, formatPz, formatFecha } from "@/lib/api";
 
-export default function Inversiones() {
+export default function Inversiones({ cuenta }) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
     let alive = true;
     api
-      .inversiones()
+      .inversiones(cuenta?.id)
       .then((r) => alive && setData(r))
       .catch((e) => alive && setErr(e.message));
     return () => {
       alive = false;
     };
-  }, []);
+  }, [cuenta?.id]);
 
   const holdings = data?.holdings || [];
   const operaciones = data?.operaciones || [];

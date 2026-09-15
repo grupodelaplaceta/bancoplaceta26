@@ -2,20 +2,20 @@ import { useEffect, useState } from "react";
 import { Card, SectionTitle, Skeleton, EmptyState, Badge } from "@/components/ui";
 import { api } from "@/lib/api";
 
-export default function Gestores() {
+export default function Gestores({ cuenta }) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
     let alive = true;
     api
-      .gestores()
+      .gestores(cuenta?.id)
       .then((r) => alive && setData(r.gestores || []))
       .catch((e) => alive && setErr(e.message));
     return () => {
       alive = false;
     };
-  }, []);
+  }, [cuenta?.id]);
 
   return (
     <div className="space-y-6">

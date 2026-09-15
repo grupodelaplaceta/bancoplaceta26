@@ -2,20 +2,20 @@ import { useEffect, useState } from "react";
 import { Card, SectionTitle, Skeleton, EmptyState, Badge } from "@/components/ui";
 import { api, formatPz, formatFecha } from "@/lib/api";
 
-export default function Tributos() {
+export default function Tributos({ cuenta }) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
     let alive = true;
     api
-      .tributos()
+      .tributos(cuenta?.id)
       .then((r) => alive && setData(r))
       .catch((e) => alive && setErr(e.message));
     return () => {
       alive = false;
     };
-  }, []);
+  }, [cuenta?.id]);
 
   const propias = data?.declaraciones || [];
   const empresas = data?.empresas || [];

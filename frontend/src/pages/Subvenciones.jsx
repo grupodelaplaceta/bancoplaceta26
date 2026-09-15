@@ -12,20 +12,20 @@ const ESTADOS = {
   denegada: "rose",
 };
 
-export default function Subvenciones() {
+export default function Subvenciones({ cuenta }) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
     let alive = true;
     api
-      .subvenciones()
+      .subvenciones(cuenta?.id)
       .then((r) => alive && setData(r.solicitudes || []))
       .catch((e) => alive && setErr(e.message));
     return () => {
       alive = false;
     };
-  }, []);
+  }, [cuenta?.id]);
 
   return (
     <div className="space-y-6">

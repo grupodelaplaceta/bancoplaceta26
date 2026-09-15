@@ -148,13 +148,24 @@ function bffGet(token, path) {
 function bffPost(token, path, body) {
   return webPost(token, path, body);
 }
+function cuentaPath(req, path) {
+  const cuenta = String(req.query.cuenta || getCuenta(req) || "").trim();
+  return cuenta ? `${path}${path.includes("?") ? "&" : "?"}cuenta=${encodeURIComponent(cuenta)}` : path;
+}
+function upstreamStatus(result) {
+  if (result.status === 401) return 401;
+  if (result.status === 403) return 403;
+  if (result.status === 404) return 404;
+  if (result.status === 405) return 405;
+  return 502;
+}
 
 app.get("/bff/me", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
   const r = await bffGet(token, "/api/web/cuenta");
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
   if (r.status === 404 && r.body?.error === "titular_no_encontrado") return res.status(404).json({ error: "titular_no_encontrado" });
-  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   const cuentas = r.body.cuentas || [];
   const sel = getCuenta(req);
   const cuentaActiva = sel && cuentas.some((c) => c.id === sel) ? sel : (cuentas[0]?.id || null);
@@ -168,72 +179,72 @@ app.get("/bff/movimientos", requireAuth, bff(async (req, res) => {
   const q = "?limit=" + encodeURIComponent(limit) + (cuenta ? "&cuenta=" + encodeURIComponent(cuenta) : "");
   const r = await bffGet(token, "/api/web/movimientos" + q);
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
-  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
 }));
 
 app.get("/bff/tarjetas", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
   const cuenta = String(req.query.cuenta || getCuenta(req) || "");
-  const r = await bffGet(token, "/api/web/tarjetas" + (cuenta ? "?cuenta=" + encodeURIComponent(cuenta) : ""));
+  const r = await bffGet(token, cuentaPath(req, "/api/web/tarjetas"));
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
-  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
 }));
 
 app.get("/bff/gestores", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffGet(token, "/api/web/gestores");
+  const r = await bffGet(token, cuentaPath(req, "/api/web/gestores"));
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
-  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
 }));
 
 app.get("/bff/inversiones", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffGet(token, "/api/web/inversiones");
+  const r = await bffGet(token, cuentaPath(req, "/api/web/inversiones"));
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
-  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
 }));
 
 app.get("/bff/nominas", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffGet(token, "/api/web/nominas");
+  const r = await bffGet(token, cuentaPath(req, "/api/web/nominas"));
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
-  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
 }));
 
 app.get("/bff/tributos", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffGet(token, "/api/web/tributos");
+  const r = await bffGet(token, cuentaPath(req, "/api/web/tributos"));
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
-  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
 }));
 
 app.get("/bff/facturacion", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffGet(token, "/api/web/facturacion");
+  const r = await bffGet(token, cuentaPath(req, "/api/web/facturacion"));
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
-  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
 }));
 
 app.get("/bff/subvenciones", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffGet(token, "/api/web/subvenciones");
+  const r = await bffGet(token, cuentaPath(req, "/api/web/subvenciones"));
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
-  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
 }));
 
 app.get("/bff/cumplimiento", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffGet(token, "/api/web/cumplimiento");
+  const r = await bffGet(token, cuentaPath(req, "/api/web/cumplimiento"));
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
-  if (!r.ok) return res.status(502).json({ error: r.body?.error || "banco_no_disponible" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
 }));
 

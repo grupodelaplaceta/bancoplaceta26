@@ -324,7 +324,45 @@ select,
   box-shadow: 0 8px 20px rgba(91, 34, 168, .24);
 }
 
-.app-brand-logo-wrap{width:100%;padding:4px 8px}.app-brand-logo{display:block;width:min(100%,220px);height:auto;object-fit:contain}.brand-loading-mark {
+.app-brand-logo-wrap{width:100%;padding:9px 8px;border-radius:16px;background:#fff}.app-brand-logo{display:block;width:min(100%,220px);height:auto;object-fit:contain}
+
+.app-loading-screen {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background: #150259;
+}
+
+.app-loading-panel {
+  display: flex;
+  width: min(100%, 360px);
+  min-height: 250px;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  flex-direction: column;
+  padding: 28px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 24px;
+  background: #21038C;
+  color: rgba(255,255,255,.76);
+  box-shadow: 0 24px 64px rgba(0,0,0,.24);
+}
+
+.app-loading-panel p { margin: 0; font-size: 13px; font-weight: 700; }
+.loading-retry {
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 12px;
+  padding: 11px 15px;
+  background: #3204D9;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.brand-loading-mark {
   display: grid;
   place-items: center;
   width: min(300px, 82vw);
@@ -383,8 +421,8 @@ body{background:#f4f5ff;background-image:radial-gradient(900px 420px at 92% -10%
 .main{max-width:1180px;padding:30px 36px}
 .header{margin-bottom:26px}.header h1{font-size:28px;letter-spacing:-.04em}.page-loading{min-height:340px;color:#4f4a73}
 .dashboard-brand-art{right:30px;top:30px;width:170px;height:82px}
-@media(max-width:820px){.main{padding:74px 14px 28px}.header{margin-bottom:20px}.header h1{font-size:23px}.sidebar{box-shadow:18px 0 48px #1502592e}}
-@media(max-width:460px){.main{padding-inline:12px}}
+@media(max-width:820px){.main{padding:74px 14px 28px}.header{margin-bottom:20px}.header h1{font-size:23px}.sidebar{box-shadow:18px 0 48px #1502592e}.app-brand-logo-wrap{padding:7px 6px}.app-brand-logo{width:min(100%,205px)}}
+@media(max-width:460px){.main{padding-inline:12px}.app-loading-panel{min-height:220px;padding:22px}.dashboard-brand-art{display:none}.account-profile-card > div:first-child{gap:10px}.account-profile-card h2{font-size:16px}.account-context-card{min-height:150px}}
 
 /* Espacio de cuenta: el contenido cambia con la cuenta seleccionada. */
 .account-profile-card,

@@ -2,20 +2,20 @@ import { useEffect, useState } from "react";
 import { Card, SectionTitle, Skeleton, EmptyState, Badge } from "@/components/ui";
 import { api, formatPz } from "@/lib/api";
 
-export default function Facturacion() {
+export default function Facturacion({ cuenta }) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
     let alive = true;
     api
-      .facturacion()
+      .facturacion(cuenta?.id)
       .then((r) => alive && setData(r))
       .catch((e) => alive && setErr(e.message));
     return () => {
       alive = false;
     };
-  }, []);
+  }, [cuenta?.id]);
 
   const empresas = data?.empresas || [];
 

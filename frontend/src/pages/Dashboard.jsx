@@ -36,7 +36,7 @@ export default function Dashboard({ cuenta }) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#150259] via-[#3204D9] to-[#6B7FF2] p-7 text-white"
+        className="relative overflow-hidden rounded-3xl bg-[#150259] p-7 text-white shadow-[0_18px_40px_rgba(21,2,89,.18)]"
       >
         <div className="relative z-10">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">

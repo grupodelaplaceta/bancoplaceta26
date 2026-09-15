@@ -4,7 +4,7 @@
 
 async function request(path, options = {}) {
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), options.timeoutMs || 15000);
+  const timeout = window.setTimeout(() => controller.abort(), options.timeoutMs || 12000);
   const { timeoutMs: _timeoutMs, signal: externalSignal, ...fetchOptions } = options;
   if (externalSignal) externalSignal.addEventListener("abort", () => controller.abort(), { once: true });
   let res;
@@ -12,7 +12,9 @@ async function request(path, options = {}) {
     res = await fetch(path, {
       ...fetchOptions,
       signal: controller.signal,
-      headers: { "Content-Type": "application/json", ...(fetchOptions.headers || {}) },
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: { Accept: "application/json", ...(fetchOptions.body ? { "Content-Type": "application/json" } : {}), ...(fetchOptions.headers || {}) },
     });
   } catch (error) {
     if (error?.name === "AbortError") throw new Error("La conexión está tardando demasiado. Comprueba tu red e inténtalo de nuevo.");
@@ -38,7 +40,10 @@ async function request(path, options = {}) {
     throw new Error("no_registrado");
   }
   if (!res.ok) {
-    const err = new Error(body.error || `http_${res.status}`);
+    const message = res.status === 405
+      ? "Esta operación no está disponible para este tipo de cuenta."
+      : (body.error || `http_${res.status}`);
+    const err = new Error(message);
     err.status = res.status;
     err.body = body;
     throw err;
@@ -52,14 +57,14 @@ export const api = {
   movimientos: (cuenta, limit = 100) =>
     request(`/bff/movimientos?cuenta=${encodeURIComponent(cuenta || "")}&limit=${limit}`),
   tarjetas: (cuenta) => request(`/bff/tarjetas?cuenta=${encodeURIComponent(cuenta || "")}`),
-  gestores: () => request("/bff/gestores"),
-  inversiones: () => request("/bff/inversiones"),
-  nominas: () => request("/bff/nominas"),
-  tributos: () => request("/bff/tributos"),
-  facturacion: () => request("/bff/facturacion"),
-  subvenciones: () => request("/bff/subvenciones"),
-  cumplimiento: () => request("/bff/cumplimiento"),
-  contactos: () => request("/bff/contactos"),
+  gestores: (cuenta) => request(`/bff/gestores?cuenta=${encodeURIComponent(cuenta || "")}`),
+  inversiones: (cuenta) => request(`/bff/inversiones?cuenta=${encodeURIComponent(cuenta || "")}`),
+  nominas: (cuenta) => request(`/bff/nominas?cuenta=${encodeURIComponent(cuenta || "")}`),
+  tributos: (cuenta) => request(`/bff/tributos?cuenta=${encodeURIComponent(cuenta || "")}`),
+  facturacion: (cuenta) => request(`/bff/facturacion?cuenta=${encodeURIComponent(cuenta || "")}`),
+  subvenciones: (cuenta) => request(`/bff/subvenciones?cuenta=${encodeURIComponent(cuenta || "")}`),
+  cumplimiento: (cuenta) => request(`/bff/cumplimiento?cuenta=${encodeURIComponent(cuenta || "")}`),
+  contactos: (cuenta) => request(`/bff/contactos?cuenta=${encodeURIComponent(cuenta || "")}`),
   transferir: (payload) => request("/bff/transferencia", { method: "POST", body: JSON.stringify(payload) }),
   seleccionarCuenta: (cuenta) =>
     request("/bff/cuenta/seleccionar", { method: "POST", body: JSON.stringify({ cuenta }) }),
