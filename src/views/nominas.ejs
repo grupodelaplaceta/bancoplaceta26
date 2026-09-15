@@ -1,0 +1,64 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <div>
+      <h1>Nóminas</h1>
+      <p class="bw-sub">
+        Periodo <strong><%= n.periodo %></strong>
+        · corte el día <%= (n.config && n.config.cutoffDay) || '—' %>
+        · retención <%= (n.config && n.config.retencionPct != null) ? (n.config.retencionPct + '%') : '—' %>
+      </p>
+    </div>
+  </div>
+
+  <% if (n.plazoVencido) { %>
+    <div class="bw-banner" style="margin-bottom:14px">⏰ El plazo de confirmación de este periodo ha vencido.</div>
+  <% } %>
+
+  <% if (!n.resumenes || n.resumenes.length === 0) { %>
+    <div class="bw-card bw-empty">No hay nóminas asociadas a tu identidad ni a tus empresas en este periodo.</div>
+  <% } else { %>
+    <div class="bw-grid">
+      <% n.resumenes.forEach(function (r) { %>
+        <div class="bw-card bw-account">
+          <div class="bw-account-top">
+            <span class="bw-chip"><%= r.contrato.roleTitle || 'Empleado' %></span>
+            <span class="bw-chip <%= String(r.estado).toLowerCase() === 'paid' ? 'bw-chip-soft' : 'bw-chip-warn' %>"><%= r.estado %></span>
+          </div>
+          <div class="bw-account-name"><%= r.contrato.employeeName || r.contrato.employeeDip %></div>
+          <div class="bw-muted" style="font-size:.85rem">
+            Base <%= (r.basePz || 0).toLocaleString('es-ES') %> Pz
+            · Complementos <%= ((r.complementosFijosPz || 0) + (r.complementosActividadPz || 0)).toLocaleString('es-ES') %> Pz
+          </div>
+          <table class="bw-table" style="margin-top:10px">
+            <tbody>
+              <tr><td class="bw-muted">Bruto</td><td style="text-align:right"><%= (r.brutoPz || 0).toLocaleString('es-ES') %> Pz</td></tr>
+              <tr><td class="bw-muted">Retenciones</td><td style="text-align:right" class="bw-neg">−<%= (r.retencionesPz || 0).toLocaleString('es-ES') %> Pz</td></tr>
+              <tr><td class="bw-muted"><strong>Neto</strong></td><td style="text-align:right" class="bw-pos"><%= (r.netoPz || 0).toLocaleString('es-ES') %> Pz</td></tr>
+            </tbody>
+          </table>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (n.periodos && n.periodos.length) { %>
+    <div class="bw-card" style="margin-top:16px">
+      <div class="bw-account-top"><strong>Pagos</strong></div>
+      <table class="bw-table">
+        <thead>
+          <tr><th>Periodo</th><th>Empleado</th><th>Estado</th><th style="text-align:right">Neto</th></tr>
+        </thead>
+        <tbody>
+          <% n.periodos.forEach(function (p) { %>
+            <tr>
+              <td class="bw-muted"><%= p.periodo %></td>
+              <td><%= p.employeeName || p.employeeDip %></td>
+              <td><span class="bw-chip <%= String(p.status).toLowerCase() === 'paid' ? 'bw-chip-soft' : 'bw-chip-warn' %>"><%= p.status %></span></td>
+              <td style="text-align:right"><%= ((p.pagoDetalle && p.pagoDetalle.netoPz) || p.netoPz || 0).toLocaleString('es-ES') %> Pz</td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>

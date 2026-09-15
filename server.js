@@ -268,6 +268,15 @@ app.post("/facturacion", requireAuth, async (req, res) => {
   });
 });
 
+// ── Nóminas (solo lectura: como empleado o empresa) ───────────────────
+app.get("/nominas", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const r = await webGet(token, "/api/web/nominas");
+  if (r.status === 401) return res.redirect("/login");
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudieron cargar las nóminas." });
+  res.render("nominas", { n: r.body || {}, active: "nominas" });
+});
+
 // ── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).render("error", { layout: false, mensaje: "Página no encontrada." }));
 
