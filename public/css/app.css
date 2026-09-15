@@ -404,3 +404,6 @@ label {
   outline: 3px solid rgba(77, 0, 255, .35);
   outline-offset: 2px;
 }
+
+.bw-brand-mark { overflow: hidden; padding: 7px; }
+.bw-brand-mark img { display:block; width:100%; height:100%; object-fit:contain; }

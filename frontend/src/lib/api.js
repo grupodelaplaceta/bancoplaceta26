@@ -3,10 +3,23 @@
 // exponen ninguna credencial en el navegador.
 
 async function request(path, options = {}) {
-  const res = await fetch(path, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    ...options,
-  });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), options.timeoutMs || 15000);
+  const { timeoutMs: _timeoutMs, signal: externalSignal, ...fetchOptions } = options;
+  if (externalSignal) externalSignal.addEventListener("abort", () => controller.abort(), { once: true });
+  let res;
+  try {
+    res = await fetch(path, {
+      ...fetchOptions,
+      signal: controller.signal,
+      headers: { "Content-Type": "application/json", ...(fetchOptions.headers || {}) },
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") throw new Error("La conexión está tardando demasiado. Comprueba tu red e inténtalo de nuevo.");
+    throw new Error("No se pudo conectar con Banco de La Placeta.");
+  } finally {
+    window.clearTimeout(timeout);
+  }
   let body = {};
   const text = await res.text();
   try {

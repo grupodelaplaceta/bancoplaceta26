@@ -309,3 +309,68 @@ select,
   outline: 3px solid rgba(91, 34, 168, .35);
   outline-offset: 2px;
 }
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 13px;
+  background: var(--brand-purple);
+  color: #fff;
+  font-family: "Montserrat Alternates", sans-serif;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(91, 34, 168, .24);
+}
+
+.brand-loading-mark {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  padding: 18px;
+  border-radius: 28px;
+  background: var(--brand-purple);
+  box-shadow: 0 18px 40px rgba(91, 34, 168, .24);
+  animation: brandPulse 1.8s ease-in-out infinite;
+}
+
+.brand-loading-mark img,
+.dashboard-brand-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@keyframes brandPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+
+.dashboard-brand-art {
+  position: absolute;
+  right: 28px;
+  top: 28px;
+  width: 150px;
+  height: 76px;
+  opacity: .92;
+  transform: rotate(-4deg);
+}
+
+.dashboard-brand-art span {
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  right: -42px;
+  top: -48px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-loading-mark { animation: none; }
+}
+.brand-mark { overflow: hidden; padding: 7px; }
+.brand-mark img { width: 100%; height: 100%; object-fit: contain; display: block; }

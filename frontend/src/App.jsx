@@ -134,8 +134,8 @@ export default function App() {
     return (
       <div className="grid min-h-screen place-items-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="grid h-16 w-16 place-items-center rounded-2xl bg-brand text-2xl font-extrabold text-white shadow-xl shadow-brand/20">
-            B
+          <div className="brand-loading-mark" aria-label="Banco de La Placeta">
+            <img src="/brand/logo.png" alt="" />
           </div>
           <Spinner className="!h-8 !w-8" />
           <p className="text-sm font-semibold text-brand-dark/60">Cargando tu banco…</p>
@@ -158,9 +158,7 @@ export default function App() {
       {menuOpen && <button type="button" className="mobile-scrim" aria-label="Cerrar menú" onClick={() => setMenuOpen(false)} />}
       <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         <div className="flex items-center gap-3 px-2">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand text-white font-extrabold shadow-lg shadow-brand/20">
-            B
-          </span>
+          <span className="brand-mark" aria-hidden="true"><img src="/brand/icon.png" alt="" /></span>
           <div className="min-w-0">
             <p className="truncate text-[15px] font-bold text-brand-dark">Banco de La Placeta</p>
             <p className="text-[11px] text-brand-dark/50">Banca en línea</p>

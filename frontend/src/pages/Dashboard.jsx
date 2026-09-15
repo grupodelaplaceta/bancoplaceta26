@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import FluidOrb from "@/components/FluidOrb";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { Card, SectionTitle, Skeleton, EmptyState, Badge } from "@/components/ui";
 import { api, formatPz, formatFecha } from "@/lib/api";
@@ -56,8 +55,9 @@ export default function Dashboard({ cuenta }) {
             )}
           </div>
         </div>
-        <div className="absolute -right-4 -top-4 opacity-90">
-          <FluidOrb size={220} color="#7B3DFF" />
+        <div className="dashboard-brand-art" aria-hidden="true">
+          <img src="/brand/logo.png" alt="" />
+          <span />
         </div>
       </motion.div>
 
