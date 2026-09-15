@@ -372,7 +372,7 @@ const publicPages = {
 };
 
 Object.entries(publicPages).forEach(([path, page]) => {
-  app.get(path, (req, res) => res.render("public-page", page));
+  app.get(path, (req, res) => res.render("public-page", { ...page, layout: false }));
 });
 
 // SPA fallback: cualquier ruta de navegación del frontend sirve index.html.
