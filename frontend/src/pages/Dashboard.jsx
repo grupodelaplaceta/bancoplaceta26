@@ -56,7 +56,7 @@ export default function Dashboard({ cuenta }) {
           </div>
         </div>
         <div className="dashboard-brand-art" aria-hidden="true">
-          <img src="/brand/logo.png" alt="" />
+          <img src="/img/bancologosobreoscuro.png" alt="Banco de La Placeta" />
           <span />
         </div>
       </motion.div>

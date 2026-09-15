@@ -324,15 +324,13 @@ select,
   box-shadow: 0 8px 20px rgba(91, 34, 168, .24);
 }
 
-.brand-loading-mark {
+.app-brand-logo-wrap{width:100%;padding:4px 8px}.app-brand-logo{display:block;width:min(100%,220px);height:auto;object-fit:contain}.brand-loading-mark {
   display: grid;
   place-items: center;
-  width: 104px;
-  height: 104px;
-  padding: 18px;
-  border-radius: 28px;
-  background: var(--brand-purple);
-  box-shadow: 0 18px 40px rgba(91, 34, 168, .24);
+  width: min(300px, 82vw);
+  height: auto;
+  padding: 0;
+  background: transparent;
   animation: brandPulse 1.8s ease-in-out infinite;
 }
 
