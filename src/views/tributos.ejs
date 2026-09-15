@@ -1,0 +1,65 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <div>
+      <h1>Tributos</h1>
+      <p class="bw-sub">Declaraciones de IRM e IGF a tu nombre y de tus empresas</p>
+    </div>
+  </div>
+
+  <% var totalIrm = (t.declaraciones || []).reduce(function(s, d) { return s + (d.cuota_irm || 0); }, 0); %>
+  <% var totalIgf = (t.declaraciones || []).reduce(function(s, d) { return s + (d.cuota_igf || 0); }, 0); %>
+
+  <div class="bw-hero" style="margin-bottom:16px">
+    <div class="bw-hero-label">Cuota acumulada (declaraciones)</div>
+    <div class="bw-hero-balance" data-count="<%= totalIrm + totalIgf %>">0</div>
+    <div class="bw-hero-owner">IRM <%= totalIrm.toLocaleString('es-ES') %> Pz · IGF <%= totalIgf.toLocaleString('es-ES') %> Pz</div>
+  </div>
+
+  <% if (!t.declaraciones || t.declaraciones.length === 0) { %>
+    <div class="bw-card bw-empty">No tienes declaraciones tributarias registradas todavía.</div>
+  <% } else { %>
+    <div class="bw-card">
+      <div class="bw-account-top"><strong>Mis declaraciones</strong></div>
+      <table class="bw-table">
+        <thead>
+          <tr><th>Periodo</th><th>Patrimonio medio</th><th>IRM</th><th>IGF</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          <% t.declaraciones.forEach(function (d) { %>
+            <tr>
+              <td class="bw-muted"><%= d.mes_periodo %></td>
+              <td><%= (d.patrimonio_medio || 0).toLocaleString('es-ES') %> Pz</td>
+              <td><%= (d.cuota_irm || 0).toLocaleString('es-ES') %> Pz</td>
+              <td><%= (d.cuota_igf || 0).toLocaleString('es-ES') %> Pz</td>
+              <td><span class="bw-chip <%= String(d.estado_pago).toLowerCase().indexOf('pag') === 0 ? 'bw-chip-soft' : 'bw-chip-warn' %>"><%= d.estado_pago %></span></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <% (t.empresas || []).forEach(function (emp) { %>
+    <% if (emp.declaraciones && emp.declaraciones.length) { %>
+      <div class="bw-card" style="margin-top:16px">
+        <div class="bw-account-top"><strong><%= emp.nombre %></strong> <span class="bw-muted">· <%= emp.eip %></span></div>
+        <table class="bw-table">
+          <thead>
+            <tr><th>Periodo</th><th>Patrimonio medio</th><th>IRM</th><th>IGF</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            <% emp.declaraciones.forEach(function (d) { %>
+              <tr>
+                <td class="bw-muted"><%= d.mes_periodo %></td>
+                <td><%= (d.patrimonio_medio || 0).toLocaleString('es-ES') %> Pz</td>
+                <td><%= (d.cuota_irm || 0).toLocaleString('es-ES') %> Pz</td>
+                <td><%= (d.cuota_igf || 0).toLocaleString('es-ES') %> Pz</td>
+                <td><span class="bw-chip <%= String(d.estado_pago).toLowerCase().indexOf('pag') === 0 ? 'bw-chip-soft' : 'bw-chip-warn' %>"><%= d.estado_pago %></span></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  <% }) %>
+</div>

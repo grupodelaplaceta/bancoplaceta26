@@ -277,6 +277,14 @@ app.get("/nominas", requireAuth, async (req, res) => {
   res.render("nominas", { n: r.body || {}, active: "nominas" });
 });
 
+app.get("/tributos", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const r = await webGet(token, "/api/web/tributos");
+  if (r.status === 401) return res.redirect("/login");
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudieron cargar tus tributos." });
+  res.render("tributos", { t: r.body || {}, active: "tributos" });
+});
+
 // ── 404 ──────────────────────────────────────────────────────────────────────
 app.use((req, res) => res.status(404).render("error", { layout: false, mensaje: "Página no encontrada." }));
 
