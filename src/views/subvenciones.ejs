@@ -1,0 +1,30 @@
+<div class="bw-page">
+  <div class="bw-header">
+    <div>
+      <h1>Subvenciones</h1>
+      <p class="bw-sub">Solicitudes de subvención asociadas a tus cuentas</p>
+    </div>
+  </div>
+
+  <% var solicitudes = s.solicitudes || []; %>
+
+  <% if (!solicitudes.length) { %>
+    <div class="bw-card bw-empty">No tienes subvenciones registradas.</div>
+  <% } else { %>
+    <div class="bw-card">
+      <table class="bw-table">
+        <thead><tr><th>Concepto</th><th style="text-align:right">Importe</th><th>Estado</th><th>Fecha</th></tr></thead>
+        <tbody>
+          <% solicitudes.forEach(function (sub) { %>
+            <tr>
+              <td><%= sub.reason %></td>
+              <td style="text-align:right" class="bw-pos"><%= (sub.amountPz || 0).toLocaleString('es-ES') %> Pz</td>
+              <td><span class="bw-chip <%= String(sub.status).toLowerCase() === 'settled' || String(sub.status).toLowerCase() === 'approved' ? 'bw-chip-soft' : 'bw-chip-warn' %>"><%= sub.status %></span></td>
+              <td class="bw-muted"><%= sub.createdAt ? new Date(sub.createdAt).toLocaleDateString('es-ES') : '—' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>

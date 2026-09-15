@@ -293,6 +293,14 @@ app.get("/inversiones", requireAuth, async (req, res) => {
   res.render("inversiones", { inv: r.body || {}, active: "inversiones" });
 });
 
+app.get("/subvenciones", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const r = await webGet(token, "/api/web/subvenciones");
+  if (r.status === 401) return res.redirect("/login");
+  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudieron cargar las subvenciones." });
+  res.render("subvenciones", { s: r.body || {}, active: "subvenciones" });
+});
+
 app.get("/placezum", requireAuth, async (req, res) => {
   const token = getToken(req);
   const r = await webGet(token, "/api/web/cuenta");
