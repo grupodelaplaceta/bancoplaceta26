@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/public-site.css">
   <style>
     :root{--purple:#5b22a8;--violet:#7b3fd1;--ink:#211337;--dark:#160c29;--soft:#f5f0fc;--muted:#766987;--line:#e8def2}
     *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;background:#fff}h1,h2,h3,a,button{font-family:'Montserrat Alternates',sans-serif}a{text-decoration:none;color:inherit}.wrap{width:min(1160px,calc(100% - 40px));margin:auto}
@@ -22,11 +23,39 @@
 <body>
   <header class="nav"><div class="wrap nav-inner"><a class="brand" href="/"><img src="/brand/icon.png" alt=""><div><strong>Banco de La Placeta</strong><span>Economía virtual comunitaria</span></div></a><nav class="nav-links" aria-label="Navegación pública"><a href="/ecosistema">Ecosistema</a><a href="/seguridad">Seguridad</a><a class="nav-cta" href="/login">Entrar con PlacetaID</a></nav></div></header>
   <main>
-    <section class="hero"><div class="wrap hero-grid"><div><p class="eyebrow">Banco de La Placeta</p><h1>Una economía que <em>conecta</em> proyectos y comunidad.</h1><p>La primera economía virtual sin ánimo de lucro que reúne cuentas, proyectos y servicios de La Placeta. Gestiona tus Placetas de forma clara, segura y con la misma experiencia en web y app.</p><div class="actions"><a class="btn btn-primary" href="/login">Acceder al banco</a><a class="btn btn-ghost" href="/ecosistema">Conocer el ecosistema</a></div></div><div class="hero-card" aria-label="PlaceZUM"><div class="hero-logo"><img src="/brand/logo.png" alt="Banco de La Placeta"></div><h2>Envía Placetas en un zum</h2><p>PlaceZUM permite cobrar o enviar Placetas mediante códigos temporales y operaciones verificadas.</p><div class="metric"><div><b>2 min</b>Códigos temporales</div><div><b>24/7</b>Disponible en web y app</div></div></div></div></section>
+    <section class="hero public-carousel" aria-label="Presentación Banco de La Placeta" aria-roledescription="carrusel">
+      <div class="carousel-track">
+        <article class="carousel-slide is-active" aria-roledescription="diapositiva" aria-label="1 de 1">
+          <img src="/img/banne/1.jpg" alt="Banco de La Placeta y su ecosistema" loading="eager" fetchpriority="high">
+          <div class="carousel-overlay">
+            <p class="eyebrow">Banco de La Placeta</p>
+            <h1>Una economía que <em>conecta</em> proyectos y comunidad.</h1>
+            <p>La primera economía virtual sin ánimo de lucro que reúne cuentas, proyectos y servicios de La Placeta.</p>
+            <div class="actions"><a class="btn btn-primary" href="/login">Acceder al banco</a><a class="btn btn-ghost" href="/ecosistema">Conocer el ecosistema</a></div>
+          </div>
+        </article>
+      </div>
+      <div class="carousel-bar"><div class="carousel-dots" role="tablist" aria-label="Banners"><button class="carousel-dot is-active" type="button" role="tab" aria-selected="true" aria-label="Banner 1"></button></div><div class="carousel-counter">01 / 01</div></div>
+    </section>
     <section class="section" id="ecosistema"><div class="wrap"><div class="section-head"><p class="eyebrow" style="color:var(--purple)">Un solo ecosistema</p><h2>Todo lo importante, en un mismo espacio.</h2><p>Una interfaz diseñada para que cada cuenta, proyecto y operación tenga su lugar, sin mezclar información.</p></div><div class="cards"><article class="card"><div class="card-icon">↗</div><h3>PlaceZUM</h3><p>Cobra y envía Placetas con códigos temporales. Cada operación queda vinculada a una cuenta y protegida por los controles del banco.</p></article><article class="card"><div class="card-icon">▣</div><h3>Cuentas y proyectos</h3><p>Gestiona cuentas personales, empresas, organismos y cuentas junior con selección de cuenta activa y límites claros.</p></article><article class="card"><div class="card-icon">⌁</div><h3>Servicios de La Placeta</h3><p>Accede a tributos, subvenciones, facturación, inversiones y documentación desde un entorno común.</p></article></div></div></section>
     <section class="section alt" id="seguridad"><div class="wrap"><div class="section-head"><p class="eyebrow" style="color:var(--purple)">Diseñado para confiar</p><h2>Claridad antes de cada operación.</h2><p>La seguridad no debe complicar la expe
 riencia. Por eso mostramos el estado, la cuenta activa y los datos relevantes en cada paso.</p></div><div class="cards"><article class="card"><div class="card-icon">✓</div><h3>Identidad PlacetaID</h3><p>El acceso se realiza mediante la identidad oficial de La Placeta, sin exponer credenciales en el banco.</p></article><article class="card"><div class="card-icon">◌</div><h3>Operaciones verificadas</h3><p>Los enlaces, transferencias y códigos temporales se validan antes de mostrar o aplicar una operación.</p></article><article class="card"><div class="card-icon">▤</div><h3>Información trazable</h3><p>Movimientos, declaraciones y documentos relevantes se organizan para que puedas consultarlos con contexto.</p></article></div></div></section>
   </main>
   <footer class="footer"><div class="wrap footer-inner"><span>© Banco de La Placeta · Economía virtual sin ánimo de lucro</span><div class="footer-links"><a href="/ecosistema">Ecosistema</a><a href="/placezum">PlaceZUM</a><a href="/seguridad">Seguridad</a><a href="/login">PlacetaID</a><a href="https://bolp.laplaceta.org" target="_blank" rel="noopener">BOLP</a><a href="/login">Acceso seguro</a></div></div></footer>
+<script>
+(() => {
+  const slides = [...document.querySelectorAll('.carousel-slide')];
+  const dots = [...document.querySelectorAll('.carousel-dot')];
+  if (slides.length < 2) return;
+  let current = 0;
+  const show = (next) => {
+    current = (next + slides.length) % slides.length;
+    slides.forEach((slide, index) => slide.classList.toggle('is-active', index === current));
+    dots.forEach((dot, index) => { dot.classList.toggle('is-active', index === current); dot.setAttribute('aria-selected', index === current ? 'true' : 'false'); });
+  };
+  dots.forEach((dot, index) => dot.addEventListener('click', () => show(index)));
+  window.setInterval(() => show(current + 1), 7000);
+})();
+</script>
 </body>
 </html>
