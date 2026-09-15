@@ -1,44 +1,48 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FluidOrb from "@/components/FluidOrb";
+import Icon from "@/components/Icon";
 import NotificationBell from "@/components/NotificationBell";
 import { Spinner } from "@/components/ui";
 import { api } from "@/lib/api";
-import Dashboard from "@/pages/Dashboard";
-import Movimientos from "@/pages/Movimientos";
-import Transferencia from "@/pages/Transferencia";
-import Placezum from "@/pages/Placezum";
-import Tarjetas from "@/pages/Tarjetas";
-import Gestores from "@/pages/Gestores";
-import Inversiones from "@/pages/Inversiones";
-import Nominas from "@/pages/Nominas";
-import Tributos from "@/pages/Tributos";
-import Facturacion from "@/pages/Facturacion";
-import Subvenciones from "@/pages/Subvenciones";
-import Cumplimiento from "@/pages/Cumplimiento";
-import Normativa from "@/pages/Normativa";
+
+// Las pantallas se descargan solo cuando se abren: el primer render carga
+// únicamente el dashboard y el shell de navegación.
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Movimientos = lazy(() => import("@/pages/Movimientos"));
+const Transferencia = lazy(() => import("@/pages/Transferencia"));
+const Placezum = lazy(() => import("@/pages/Placezum"));
+const Tarjetas = lazy(() => import("@/pages/Tarjetas"));
+const Gestores = lazy(() => import("@/pages/Gestores"));
+const Inversiones = lazy(() => import("@/pages/Inversiones"));
+const Nominas = lazy(() => import("@/pages/Nominas"));
+const Tributos = lazy(() => import("@/pages/Tributos"));
+const Facturacion = lazy(() => import("@/pages/Facturacion"));
+const Subvenciones = lazy(() => import("@/pages/Subvenciones"));
+const Cumplimiento = lazy(() => import("@/pages/Cumplimiento"));
+const Normativa = lazy(() => import("@/pages/Normativa"));
 
 const NAV = [
   { group: "Operar", items: [
-    { id: "inicio", label: "Inicio" },
-    { id: "movimientos", label: "Movimientos" },
-    { id: "transferencia", label: "Transferencia" },
-    { id: "placezum", label: "PlaceZUM" },
+    { id: "inicio", label: "Inicio", icon: "home" },
+    { id: "movimientos", label: "Movimientos", icon: "activity" },
+    { id: "transferencia", label: "Transferencia", icon: "send" },
+    { id: "placezum", label: "PlaceZUM", icon: "zum" },
   ]},
   { group: "Cuentas y medios", items: [
-    { id: "tarjetas", label: "Tarjetas" },
-    { id: "gestores", label: "Gestores" },
-    { id: "inversiones", label: "Inversiones" },
+    { id: "tarjetas", label: "Tarjetas", icon: "card" },
+    { id: "gestores", label: "Gestores", icon: "users" },
+    { id: "inversiones", label: "Inversiones", icon: "chart" },
   ]},
   { group: "Fiscal y empresa", items: [
-    { id: "nominas", label: "Nóminas" },
-    { id: "tributos", label: "Tributos" },
-    { id: "facturacion", label: "Facturación" },
-    { id: "subvenciones", label: "Subvenciones" },
+    { id: "nominas", label: "Nóminas", icon: "briefcase" },
+    { id: "tributos", label: "Tributos", icon: "receipt" },
+    { id: "facturacion", label: "Facturación", icon: "building" },
+    { id: "subvenciones", label: "Subvenciones", icon: "chart" },
   ]},
   { group: "Otros", items: [
-    { id: "cumplimiento", label: "Cumplimiento" },
-    { id: "normativa", label: "Normativa" },
+    { id: "cumplimiento", label: "Cumplimiento", icon: "shield" },
+    { id: "normativa", label: "Normativa", icon: "book" },
   ]},
 ];
 
@@ -73,6 +77,7 @@ export default function App() {
   const [me, setMe] = useState(null);
   const [error, setError] = useState(null);
   const [cuentaId, setCuentaId] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -104,6 +109,7 @@ export default function App() {
   };
 
   const Page = PAGES[route] || Dashboard;
+  const currentItem = NAV.flatMap((section) => section.items).find((item) => item.id === route);
 
   if (error) {
     return (
@@ -141,7 +147,17 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      <button
+        type="button"
+        className="mobile-menu-button"
+        aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+        aria-expanded={menuOpen}
+        onClick={() => setMenuOpen((v) => !v)}
+      >
+        <Icon name={menuOpen ? "close" : "menu"} size={21} />
+      </button>
+      {menuOpen && <button type="button" className="mobile-scrim" aria-label="Cerrar menú" onClick={() => setMenuOpen(false)} />}
+      <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         <div className="flex items-center gap-3 px-2">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand to-brand-light font-extrabold text-white">
             B
@@ -177,16 +193,12 @@ export default function App() {
                   <a
                     key={item.id}
                     href={`#${item.id}`}
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => setMenuOpen(false)}
                     className={"nav-item " + (active ? "nav-item-active" : "")}
                   >
-                    {active && (
-                      <motion.span
-                        layoutId="nav-dot"
-                        className="nav-dot"
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
-                    )}
-                    {item.label}
+                    <Icon name={item.icon} size={17} />
+                    <span>{item.label}</span>
                   </a>
                 );
               })}
@@ -198,6 +210,7 @@ export default function App() {
       <main className="main">
         <header className="header">
           <div>
+            <p className="eyebrow">{currentItem?.label || "Banco de La Placeta"}</p>
             <h1 className="text-2xl font-extrabold text-brand-dark">
               Hola, {me.usuario?.displayName?.split(" ")[0] || "titular"} 👋
             </h1>
@@ -216,7 +229,9 @@ export default function App() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22 }}
           >
-            <Page cuenta={cuenta} cuentas={me.cuentas || []} me={me} />
+            <Suspense fallback={<div className="page-loading"><Spinner /><span>Cargando sección…</span></div>}>
+              <Page cuenta={cuenta} cuentas={me.cuentas || []} me={me} />
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </main>

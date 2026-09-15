@@ -42,14 +42,20 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "src/views"));
 app.set("layout", "layout");
 app.use(expressLayouts);
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.urlencoded({ extended: true, limit: "64kb" }));
+app.use(express.json({ limit: "64kb" }));
+app.use(express.static(path.join(__dirname, "public"), { maxAge: "1h" }));
 
 // Frontend React (rareui) precompilado. Se sirve antes que las rutas EJS para
 // que, cuando esté construido, sea la UI principal del banco-web.
 const DIST = path.join(__dirname, "frontend", "dist");
 const REACT_READY = fs.existsSync(path.join(DIST, "index.html"));
-if (REACT_READY) app.use(express.static(DIST));
+if (REACT_READY) app.use(express.static(DIST, {
+  // Los nombres de Vite llevan hash: son inmutables y se pueden cachear.
+  maxAge: "1y",
+  immutable: true,
+  index: false
+}));
 
 // Cabeceras de seguridad + no-store (FASE 1.5)
 app.use((req, res, next) => {
