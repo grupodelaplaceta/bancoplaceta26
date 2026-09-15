@@ -26,7 +26,7 @@
       <label class="bw-muted" style="display:block;margin-bottom:4px">Cuenta de origen</label>
       <select name="from" style="width:100%;padding:10px;border-radius:10px;margin-bottom:14px">
         <% cuentas.forEach(function (c) { %>
-          <option value="<%= c.id %>"><%= c.displayName %> · <%= (c.balancePz || 0).toLocaleString('es-ES') %> Pz</option>
+          <option value="<%= c.id %>" <%= c.id === cuentaActiva ? 'selected' : '' %>><%= c.displayName %> · <%= (c.balancePz || 0).toLocaleString('es-ES') %> Pz</option>
         <% }) %>
       </select>
 

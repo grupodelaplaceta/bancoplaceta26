@@ -1,6 +1,6 @@
 <%
-  var total = cuentas.reduce(function(s, c) { return s + (c.balancePz || 0); }, 0);
-  var principal = cuentas[0] || null;
+  var cuenta = cuentas.find(function(c){ return c.id === cuentaActiva; }) || cuentas[0] || null;
+  var otras = cuentas.filter(function(c){ return !cuenta || c.id !== cuenta.id; });
 %>
 <div class="bw-page">
   <div class="bw-header">
@@ -16,11 +16,11 @@
     </div>
   <% } %>
 
-  <% if (cuentas.length) { %>
+  <% if (cuenta) { %>
   <div class="bw-hero">
-    <div class="bw-hero-label">Saldo total</div>
-    <div class="bw-hero-balance" data-count="<%= total %>">0</div>
-    <div class="bw-hero-owner"><%= usuario.displayName || usuario.dip %> · <%= cuentas.length %> cuenta<%= cuentas.length > 1 ? 's' : '' %></div>
+    <div class="bw-hero-label"><%= cuenta.displayName %> · <%= cuenta.type %></div>
+    <div class="bw-hero-balance" data-count="<%= cuenta.balancePz || 0 %>">0</div>
+    <div class="bw-hero-owner"><%= cuenta.ibanFull || cuenta.iban %></div>
     <div class="bw-actions">
       <a class="bw-action" href="/transferencia">
         <span class="bw-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10V6h10M7 10l4-4M17 14v4H7M17 14l-4 4"/></svg></span>
@@ -36,33 +36,29 @@
       </a>
     </div>
   </div>
+  <% } else { %>
+    <div class="bw-card bw-empty">No tienes cuentas asociadas.</div>
   <% } %>
 
-  <div class="bw-grid">
-    <% cuentas.forEach(function(cuenta) { %>
-      <div class="bw-card bw-account <%= cuenta.closedAt ? 'bw-muted' : '' %>">
-        <div class="bw-account-top">
-          <span class="bw-chip"><%= cuenta.type %></span>
-          <span class="bw-chip <%= cuenta.complianceStatus === 'Clear' ? 'bw-chip-soft' : 'bw-chip-warn' %>"><%= cuenta.complianceStatus %></span>
-        </div>
-        <div class="bw-account-name"><%= cuenta.displayName %></div>
-        <div class="bw-account-iban">
-          <%= cuenta.ibanFull || cuenta.iban %>
-          <button type="button" class="bw-copy" data-copy="<%= cuenta.ibanFull || cuenta.iban %>" title="Copiar IBAN" aria-label="Copiar IBAN">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-          </button>
-        </div>
-        <div class="bw-account-balance"><%= cuenta.balancePz.toLocaleString('es-ES') %> <span class="bw-cur">Pz</span></div>
-        <% if (cuenta.eip) { %><div class="bw-account-eip">EIP: <strong><%= cuenta.eip %></strong></div><% } %>
-      </div>
-    <% }) %>
-    <% if (!cuentas.length) { %>
-      <div class="bw-card bw-empty">No tienes cuentas asociadas.</div>
-    <% } %>
-  </div>
+  <% if (otras.length) { %>
+    <div class="bw-card" style="margin-top:16px">
+      <div class="bw-account-top"><strong>Otras cuentas</strong> <span class="bw-muted">cambia de cuenta desde el selector</span></div>
+      <table class="bw-table">
+        <tbody>
+          <% otras.forEach(function(c) { %>
+            <tr>
+              <td><%= c.displayName %> <span class="bw-muted">· <%= c.type %></span></td>
+              <td class="bw-muted"><%= c.ibanFull || c.iban %></td>
+              <td style="text-align:right"><%= (c.balancePz || 0).toLocaleString('es-ES') %> Pz</td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
 
   <% if (movimientos.length) { %>
-  <div class="bw-card">
+  <div class="bw-card" style="margin-top:16px">
     <div class="bw-account-top">
       <strong>Últimos movimientos</strong>
       <a href="/movimientos" class="bw-btn bw-btn-ghost" style="padding:6px 12px;font-size:12.5px">Ver todos</a>

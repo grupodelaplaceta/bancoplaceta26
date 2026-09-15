@@ -22,7 +22,7 @@
       <label>Cuenta origen (tuya)
         <select name="from" required>
           <% cuentas.forEach(function(c) { %>
-            <option value="<%= c.id %>"><%= c.displayName %> · <%= c.ibanFull || c.iban %></option>
+            <option value="<%= c.id %>" <%= c.id === cuentaActiva ? 'selected' : '' %>><%= c.displayName %> · <%= c.ibanFull || c.iban %></option>
           <% }) %>
         </select>
       </label>

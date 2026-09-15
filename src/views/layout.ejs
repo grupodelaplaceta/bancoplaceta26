@@ -20,7 +20,18 @@
           <small>Banca en línea</small>
         </div>
       </div>
-      <nav class="bw-nav">
+      <% if (typeof cuentas !== 'undefined' && cuentas && cuentas.length) { %>
+      <div style="padding:0 14px 12px">
+        <form method="post" action="/cuenta/seleccionar" style="margin:0">
+          <select name="cuenta" onchange="this.form.submit()" aria-label="Cuenta activa" style="width:100%;padding:9px 10px;border-radius:11px;font-size:13px;font-weight:600;border:1px solid rgba(127,127,127,.28);background:transparent;color:inherit;cursor:pointer">
+            <% cuentas.forEach(function(c) { %>
+              <option value="<%= c.id %>" <%= c.id === cuentaActiva ? 'selected' : '' %>><%= c.displayName %> · <%= (c.balancePz || 0).toLocaleString('es-ES') %> Pz</option>
+            <% }) %>
+          </select>
+        </form>
+      </div>
+      <% } %>
+            <nav class="bw-nav">
         <a href="/" class="bw-link <%= active === 'inicio' ? 'active' : '' %>">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/></svg>
           Inicio

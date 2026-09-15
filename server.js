@@ -4,7 +4,7 @@ import expressLayouts from "express-ejs-layouts";
 import path from "path";
 import { fileURLToPath } from "url";
 import { loginUrl, validateToken } from "./lib/placetaid.js";
-import { getToken, setTokenCookie, clearTokenCookie } from "./lib/session.js";
+import { getToken, setTokenCookie, clearTokenCookie, getCuenta, setCuentaCookie } from "./lib/session.js";
 import { webGet, webPost } from "./lib/bancoApi.js";
 import { cargarValoresBancarios } from "./lib/bolp.js";
 import { generarJustificanteDeclaracion } from "./lib/pdfJustificante.js";
@@ -38,6 +38,29 @@ function requireAuth(req, res, next) {
   next();
 }
 
+// Carga las cuentas del titular y la cuenta activa (para el selector del layout).
+async function cargarContexto(req, res, next) {
+  const token = getToken(req);
+  if (!token) return next();
+  try {
+    const r = await webGet(token, "/api/web/cuenta");
+    if (r.status === 401) return next();
+    const cuentas = (r.ok && r.body.cuentas) || [];
+    res.locals.cuentas = cuentas;
+    res.locals.token = token;
+    const sel = getCuenta(req);
+    res.locals.cuentaActiva = sel && cuentas.some((c) => c.id === sel) ? sel : (cuentas[0]?.id || null);
+  } catch { /* sin contexto */ }
+  next();
+}
+app.use(cargarContexto);
+
+app.post("/cuenta/seleccionar", requireAuth, (req, res) => {
+  const cuenta = String((req.body || {}).cuenta || "").trim();
+  if (cuenta) setCuentaCookie(res, cuenta);
+  res.redirect(String((req.body || {}).volver || "/"));
+});
+
 app.get("/login", (req, res) => {
   if (getToken(req)) return res.redirect("/");
   res.render("login", { layout: false, loginUrl: loginUrl(CALLBACK_URL), error: req.query.error || null });
@@ -68,7 +91,8 @@ app.get("/", requireAuth, async (req, res) => {
   if (r.status === 404 && r.body?.error === "titular_no_encontrado") return res.redirect("/registro");
   if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudo conectar con el banco en este momento." });
   // Últimos movimientos para el resumen del inicio (igual que la app)
-  const mv = await webGet(token, "/api/web/movimientos?limit=8");
+  const cuentaActiva = getCuenta(req) || "";
+  const mv = await webGet(token, "/api/web/movimientos?limit=8" + (cuentaActiva ? "&cuenta=" + encodeURIComponent(cuentaActiva) : ""));
   res.render("dashboard", {
     usuario: r.body.usuario,
     cuentas: r.body.cuentas,
@@ -121,7 +145,8 @@ app.post("/registro", requireAuth, async (req, res) => {
 
 app.get("/movimientos", requireAuth, async (req, res) => {
   const token = getToken(req);
-  const r = await webGet(token, "/api/web/movimientos?limit=200");
+  const cuenta = getCuenta(req) || "";
+  const r = await webGet(token, "/api/web/movimientos?limit=200" + (cuenta ? "&cuenta=" + encodeURIComponent(cuenta) : ""));
   if (r.status === 401) return res.redirect("/login");
   if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudieron cargar los movimientos." });
   res.render("movimientos", { movimientos: r.body.movimientos || [], active: "movimientos" });
@@ -129,7 +154,8 @@ app.get("/movimientos", requireAuth, async (req, res) => {
 
 app.get("/tarjetas", requireAuth, async (req, res) => {
   const token = getToken(req);
-  const r = await webGet(token, "/api/web/tarjetas");
+  const cuenta = getCuenta(req) || "";
+  const r = await webGet(token, "/api/web/tarjetas" + (cuenta ? "?cuenta=" + encodeURIComponent(cuenta) : ""));
   if (r.status === 401) return res.redirect("/login");
   if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudieron cargar las tarjetas." });
   res.render("tarjetas", { tarjetas: r.body.tarjetas || [], active: "tarjetas" });
