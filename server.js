@@ -300,6 +300,81 @@ app.get("/", async (req, res, next) => {
 });
 
 
+const publicPages = {
+  "/ecosistema": {
+    eyebrow: "El ecosistema",
+    title: "Una cuenta para cada proyecto, una visión común.",
+    description: "Conoce los servicios públicos del ecosistema Banco de La Placeta.",
+    intro: "Banco de La Placeta conecta personas, empresas, organismos y proyectos en una economía virtual sin ánimo de lucro, con herramientas claras y una experiencia homogénea.",
+    backLabel: "Volver a la portada",
+    showcaseTitle: "Todo tiene su espacio",
+    showcaseText: "La cuenta activa mantiene el contexto de cada operación para que la información no aparezca mezclada.",
+    sectionEyebrow: "Servicios",
+    sectionTitle: "Un banco construido alrededor de la comunidad.",
+    sectionIntro: "Cada módulo resuelve una necesidad concreta y comparte los mismos criterios de seguridad y trazabilidad.",
+    cards: [
+      { icon: "users", title: "Personas y cuentas", text: "Cuentas personales, cotitularidades y perfiles junior con límites y permisos visibles." },
+      { icon: "chart", title: "Proyectos e inversión", text: "Herramientas para proyectos, fondos y operaciones con información comprensible antes de decidir." },
+      { icon: "book", title: "Tributos y documentos", text: "Declaraciones, facturación y documentación organizada desde el RSP y el banco." }
+    ]
+  },
+  "/placezum": {
+    eyebrow: "PlaceZUM",
+    title: "Enviar Placetas debería ser tan sencillo como decir: en un zum.",
+    description: "PlaceZUM: pagos y cobros temporales del Banco de La Placeta.",
+    intro: "Genera un código temporal, compártelo y confirma la operación desde una cuenta concreta. Sin enlaces opacos ni pasos innecesarios.",
+    backLabel: "Volver a la portada",
+    showcaseTitle: "Código temporal",
+    showcaseText: "Los códigos caducan, se validan en backend y no mezclan el saldo de otras cuentas.",
+    sectionEyebrow: "Cómo funciona",
+    sectionTitle: "Diseñado para cobrar y pagar con contexto.",
+    sectionIntro: "PlaceZUM está pensado para el uso diario, pero con controles de identidad, saldo y trazabilidad.",
+    cards: [
+      { icon: "zum", title: "Genera", text: "Crea un código temporal desde la cuenta seleccionada para recibir Placetas." },
+      { icon: "shield", title: "Verifica", text: "El backend comprueba caducidad, origen, destino, saldo y límites antes de aplicar nada." },
+      { icon: "users", title: "Confirma", text: "La operación queda asociada a las cuentas implicadas y a su titular correspondiente." }
+    ]
+  },
+  "/seguridad": {
+    eyebrow: "Seguridad y confianza",
+    title: "La claridad también es una medida de seguridad.",
+    description: "Seguridad, identidad y trazabilidad del Banco de La Placeta.",
+    intro: "La web pública explica lo esencial sin pedir una sesión. La banca privada solo aparece cuando PlacetaID valida la identidad.",
+    backLabel: "Conocer el ecosistema",
+    showcaseTitle: "Primero se verifica",
+    showcaseText: "Enlaces firmados, controles de sesión y operaciones confirmadas: cada capa tiene una responsabilidad concreta.",
+    sectionEyebrow: "Principios",
+    sectionTitle: "Protección sin complicar la experiencia.",
+    sectionIntro: "Un sistema financiero debe explicar qué está ocurriendo, no esconderlo detrás de pantallas ambiguas.",
+    cards: [
+      { icon: "shield", title: "PlacetaID", text: "El banco no gestiona contraseñas de identidad: el acceso se delega en el proveedor oficial." },
+      { icon: "zum", title: "Enlaces firmados", text: "Los enlaces públicos muestran únicamente datos validados y no permiten alterar el importe." },
+      { icon: "book", title: "Trazabilidad", text: "Los estados pendientes, confirmados y cancelados se conservan con su contexto operativo." }
+    ]
+  },
+  "/sobre-el-banco": {
+    eyebrow: "Banco de La Placeta",
+    title: "Una infraestructura económica hecha para la comunidad.",
+    description: "Qué es Banco de La Placeta y cómo funciona.",
+    intro: "El banco reúne proyectos y personas en una economía virtual sin ánimo de lucro, con herramientas para operar, colaborar y consultar información oficial.",
+    backLabel: "Ver servicios",
+    showcaseTitle: "Web y app, una misma experiencia",
+    showcaseText: "La cuenta seleccionada, los estados y los principios de funcionamiento se mantienen alineados en todas las plataformas.",
+    sectionEyebrow: "Principios del proyecto",
+    sectionTitle: "Tecnología con responsabilidad comunitaria.",
+    sectionIntro: "Publicamos el funcionamiento de los servicios para que la comunidad pueda entenderlos y usarlos con confianza.",
+    cards: [
+      { icon: "users", title: "Sin ánimo de lucro", text: "La finalidad es unir proyectos y comunidad, no convertir la banca en una caja negra." },
+      { icon: "chart", title: "Evolución pública", text: "Los servicios se mejoran con criterios de accesibilidad, seguridad y trazabilidad." },
+      { icon: "book", title: "Normativa publicada", text: "Consulta los sistemas de funcionamiento y la documentación oficial en el BOLP." }
+    ]
+  }
+};
+
+Object.entries(publicPages).forEach(([path, page]) => {
+  app.get(path, (req, res) => res.render("public-page", page));
+});
+
 // SPA fallback: cualquier ruta de navegación del frontend sirve index.html.
 // Se excluyen login/registro/auth (EJS) y la API/BFF/estáticos.
 if (REACT_READY) {
