@@ -7,6 +7,7 @@ import { loginUrl, validateToken } from "./lib/placetaid.js";
 import { getToken, setTokenCookie, clearTokenCookie } from "./lib/session.js";
 import { webGet, webPost } from "./lib/bancoApi.js";
 import { cargarValoresBancarios } from "./lib/bolp.js";
+import { generarJustificanteDeclaracion } from "./lib/pdfJustificante.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -325,6 +326,23 @@ app.post("/placezum", requireAuth, async (req, res) => {
     error: r.ok ? null : (r.body.error || "No se pudo registrar el envío PlaceZUM."),
     active: "placezum"
   });
+});
+
+app.get("/tributos/:id/pdf", requireAuth, async (req, res) => {
+  const token = getToken(req);
+  const [cuentaR, tributosR] = await Promise.all([
+    webGet(token, "/api/web/cuenta"),
+    webGet(token, "/api/web/tributos")
+  ]);
+  if (cuentaR.status === 401) return res.redirect("/login");
+  const id = req.params.id;
+  const all = [...(tributosR.body?.declaraciones || [])];
+  for (const emp of tributosR.body?.empresas || []) all.push(...(emp.declaraciones || []));
+  const decl = all.find((d) => d.id === id);
+  if (!decl) return res.status(404).render("error", { layout: false, mensaje: "Declaración no encontrada." });
+  const nombre = cuentaR.body?.usuario?.displayName || cuentaR.body?.usuario?.dip || "Titular";
+  const dip = cuentaR.body?.usuario?.dip || "";
+  generarJustificanteDeclaracion(res, { nombre, dip, decl });
 });
 
 // ── 404 ──────────────────────────────────────────────────────────────────────
