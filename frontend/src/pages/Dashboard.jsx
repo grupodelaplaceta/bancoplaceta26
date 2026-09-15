@@ -21,6 +21,14 @@ export default function Dashboard({ cuenta }) {
   }, [cuenta]);
 
   const saldo = Number(cuenta?.balancePz) || 0;
+  const tipo = String(cuenta?.type || '').toLowerCase();
+  const esEmpresa = tipo === 'business' || tipo === 'empresa' || tipo === 'organismo';
+  const esJunior = tipo === 'junior' || tipo.includes('juvenil');
+  const perfil = esJunior
+    ? { nombre: 'Cuenta Placeta Junior', descripcion: 'Operativa supervisada para menores de 16 años.', acciones: [['PlaceZUM', '#placezum'], ['Movimientos', '#movimientos'], ['Normativa', '#normativa']] }
+    : esEmpresa
+      ? { nombre: 'Cuenta de empresa', descripcion: 'Herramientas para tesorería, facturación y obligaciones del proyecto.', acciones: [['Facturación', '#facturacion'], ['Tributos', '#tributos'], ['Documentos', '#normativa']] }
+      : { nombre: 'Cuenta personal', descripcion: 'Gestiona tus Placetas, pagos y documentación desde un único espacio.', acciones: [['Transferir', '#transferencia'], ['PlaceZUM', '#placezum'], ['Movimientos', '#movimientos']] };
 
   return (
     <div className="space-y-6">
@@ -60,6 +68,17 @@ export default function Dashboard({ cuenta }) {
           <span />
         </div>
       </motion.div>
+
+      <section className="grid gap-4 md:grid-cols-[1.25fr_.75fr]">
+        <Card className="account-profile-card">
+          <div className="flex items-start justify-between gap-4">
+            <div><p className="eyebrow">Espacio de cuenta</p><h2 className="mt-1 text-lg font-extrabold text-brand-dark">{perfil.nombre}</h2><p className="mt-1 text-sm text-brand-dark/55">{perfil.descripcion}</p></div>
+            <span className="account-type-mark" aria-hidden="true">{esJunior ? 'J' : esEmpresa ? 'E' : 'P'}</span>
+          </div>
+          <div className="mt-5 grid gap-2 sm:grid-cols-3">{perfil.acciones.map(([label, href]) => <a key={href} href={href} className="account-quick-link">{label}<span aria-hidden="true">→</span></a>)}</div>
+        </Card>
+        <Card className="account-context-card"><p className="eyebrow">Cuenta seleccionada</p><p className="mt-2 text-base font-extrabold text-brand-dark">{cuenta?.displayName || 'Cuenta'}</p><p className="mt-1 break-all text-xs text-brand-dark/55">{cuenta?.id || '—'}</p><p className="mt-4 text-xs leading-relaxed text-brand-dark/55">Las operaciones y límites mostrados corresponden únicamente a esta cuenta.</p></Card>
+      </section>
 
       <Card>
         <SectionTitle
