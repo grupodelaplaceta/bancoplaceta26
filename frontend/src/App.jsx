@@ -35,7 +35,7 @@ const NAV = [
     { id: "inversiones", label: "Inversiones", icon: "chart" },
   ]},
   { group: "Fiscal y empresa", items: [
-    { id: "nominas", label: "Nóminas", icon: "briefcase" },
+
     { id: "tributos", label: "Tributos", icon: "receipt" },
     { id: "facturacion", label: "Facturación", icon: "building" },
     { id: "subvenciones", label: "Subvenciones", icon: "chart" },
