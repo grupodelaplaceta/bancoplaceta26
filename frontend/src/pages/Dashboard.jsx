@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import AnimatedCounter from "@/components/AnimatedCounter";
+import Icon from "@/components/Icon";
 import { Card, SectionTitle, Skeleton, EmptyState, Badge } from "@/components/ui";
 import { api, formatPz, formatFecha } from "@/lib/api";
 
 export default function Dashboard({ cuenta }) {
   const [movs, setMovs] = useState(null);
   const [err, setErr] = useState(null);
+  const [saldoVisible, setSaldoVisible] = useState(true);
 
   useEffect(() => {
     if (!cuenta) return;
@@ -25,49 +27,38 @@ export default function Dashboard({ cuenta }) {
   const esEmpresa = tipo === 'business' || tipo === 'empresa' || tipo === 'organismo';
   const esJunior = tipo === 'junior' || tipo.includes('juvenil');
   const perfil = esJunior
-    ? { nombre: 'Cuenta Placeta Junior', descripcion: 'Operativa supervisada para menores de 16 años.', acciones: [['PlaceZUM', '#placezum'], ['Movimientos', '#movimientos'], ['Normativa', '#normativa']] }
+    ? { nombre: 'Cuenta Placeta Junior', descripcion: 'Operativa supervisada para menores de 16 años.', acciones: [['PlaceZUM', '#placezum', 'zum'], ['Movimientos', '#movimientos', 'activity'], ['Normativa', '#normativa', 'book']] }
     : esEmpresa
-      ? { nombre: 'Cuenta de empresa', descripcion: 'Herramientas para tesorería, facturación y obligaciones del proyecto.', acciones: [['Facturación', '#facturacion'], ['Tributos', '#tributos'], ['Documentos', '#normativa']] }
-      : { nombre: 'Cuenta personal', descripcion: 'Gestiona tus Placetas, pagos y documentación desde un único espacio.', acciones: [['Transferir', '#transferencia'], ['PlaceZUM', '#placezum'], ['Movimientos', '#movimientos']] };
+      ? { nombre: 'Cuenta de empresa', descripcion: 'Herramientas para tesorería, facturación y obligaciones del proyecto.', acciones: [['Facturación', '#facturacion', 'receipt'], ['Tributos', '#tributos', 'building'], ['Documentos', '#normativa', 'book']] }
+      : { nombre: 'Cuenta personal', descripcion: 'Gestiona tus Placetas, pagos y documentación desde un único espacio.', acciones: [['Enviar Placetas', '#transferencia', 'send'], ['Recargar', '#transferencia', 'plus'], ['Pagar servicios', '#placezum', 'receipt'], ['Proyectos', '#inversiones', 'briefcase']] };
 
   return (
     <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="relative overflow-hidden rounded-3xl bg-[#150259] p-7 text-white shadow-[0_18px_40px_rgba(21,2,89,.18)]"
-      >
-        <div className="relative z-10">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">
-            Saldo disponible
-          </p>
-          <div className="mt-3 flex items-baseline gap-1">
-            <AnimatedCounter
-              value={saldo}
-              className="text-5xl font-extrabold tracking-tight"
-              suffix=" Pz"
-            />
+      <section className="dashboard-showcase">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="wallet-card"
+        >
+          <div className="wallet-card-content">
+            <div className="wallet-card-heading"><span>Mi Billetera</span><button type="button" className="wallet-eye" aria-label={saldoVisible ? "Ocultar saldo" : "Mostrar saldo"} onClick={() => setSaldoVisible((visible) => !visible)}><Icon name={saldoVisible ? "eye" : "eye-off"} size={25} /></button></div>
+            <div className="wallet-balance">{saldoVisible ? <AnimatedCounter value={saldo} className="wallet-balance-value" suffix="" /> : <span className="wallet-hidden-value">••••••</span>}</div>
+            <div className="wallet-currency"><span className="coin coin-small" aria-hidden="true" /> <span>Placetas</span></div>
+            <a href="#movimientos" className="wallet-movements-link">Ver movimientos <span aria-hidden="true">→</span></a>
           </div>
-          <p className="mt-3 text-sm text-white/80">
-            {cuenta?.displayName || "Cuenta"} · {cuenta?.id || "—"}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Badge tone="gray" className="!bg-white/15 !text-white">
-              {cuenta?.type === "Business" ? "Empresa" : "Ciudadana"}
-            </Badge>
-            {cuenta?.eip && (
-              <Badge tone="gray" className="!bg-white/15 !text-white">
-                {cuenta.eip}
-              </Badge>
-            )}
+          <div className="wallet-art" aria-hidden="true"><span className="coin coin-large" /><span className="coin coin-medium" /><span className="coin coin-tiny" /><span className="wallet-wave wallet-wave-one" /><span className="wallet-wave wallet-wave-two" /></div>
+        </motion.div>
+
+        <div className="quick-actions-panel">
+          <div className="quick-actions-heading"><h2>Acciones rápidas</h2><span>{cuenta?.displayName || "Cuenta"}</span></div>
+          <div className="quick-actions-grid">
+            {perfil.acciones.map(([label, href, icon], index) => <a key={`${href}-${label}`} href={href} className={`quick-action ${index === 0 ? "quick-action-primary" : ""}`}><span className="quick-action-icon"><Icon name={icon} size={25} /></span><span>{label}</span></a>)}
           </div>
         </div>
-        <div className="dashboard-brand-art" aria-hidden="true">
-          <img src="/img/bancologosobreoscuro.png" alt="Banco de La Placeta" />
-          <span />
-        </div>
-      </motion.div>
+      </section>
+
+      <section className="dashboard-graphic-strip" aria-hidden="true"><span className="graphic-wave graphic-wave-one" /><span className="graphic-wave graphic-wave-two" /><span className="graphic-coin graphic-coin-one" /><span className="graphic-coin graphic-coin-two" /><span className="graphic-coin graphic-coin-three" /></section>
 
       <section className="grid gap-4 md:grid-cols-[1.25fr_.75fr]">
         <Card className="account-profile-card">
@@ -75,7 +66,7 @@ export default function Dashboard({ cuenta }) {
             <div><p className="eyebrow">Espacio de cuenta</p><h2 className="mt-1 text-lg font-extrabold text-brand-dark">{perfil.nombre}</h2><p className="mt-1 text-sm text-brand-dark/55">{perfil.descripcion}</p></div>
             <span className="account-type-mark" aria-hidden="true">{esJunior ? 'J' : esEmpresa ? 'E' : 'P'}</span>
           </div>
-          <div className="mt-5 grid gap-2 sm:grid-cols-3">{perfil.acciones.map(([label, href]) => <a key={href} href={href} className="account-quick-link">{label}<span aria-hidden="true">→</span></a>)}</div>
+          <div className="mt-5 grid gap-2 sm:grid-cols-3">{perfil.acciones.slice(0, 3).map(([label, href]) => <a key={href} href={href} className="account-quick-link">{label}<span aria-hidden="true">→</span></a>)}</div>
         </Card>
         <Card className="account-context-card"><p className="eyebrow">Cuenta seleccionada</p><p className="mt-2 text-base font-extrabold text-brand-dark">{cuenta?.displayName || 'Cuenta'}</p><p className="mt-1 break-all text-xs text-brand-dark/55">{cuenta?.id || '—'}</p><p className="mt-4 text-xs leading-relaxed text-brand-dark/55">Las operaciones y límites mostrados corresponden únicamente a esta cuenta.</p></Card>
       </section>

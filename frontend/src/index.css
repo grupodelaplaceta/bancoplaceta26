@@ -426,6 +426,44 @@ body{background:#f4f5ff;background-image:radial-gradient(900px 420px at 92% -10%
 
 @media(min-width:821px){.workspace-page{max-width:940px}.workspace-page > .responsive-card{padding:24px}.workspace-page .card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+/* Dashboard inspirado en la app: billetera, acciones rápidas y ondas gráficas. */
+.dashboard-showcase { display: grid; grid-template-columns: minmax(330px, .94fr) minmax(0, 1.06fr); gap: 36px; align-items: center; }
+.wallet-card { position: relative; min-height: 264px; overflow: hidden; border: 1px solid rgba(107,127,242,.45); border-radius: 26px; background: linear-gradient(145deg, #170263 0%, #21038c 54%, #3204d9 100%); color: #fff; box-shadow: 0 18px 38px rgba(21,2,89,.2); }
+.wallet-card-content { position: relative; z-index: 2; padding: 28px 30px; }
+.wallet-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; font: 700 17px "Montserrat Alternates", sans-serif; }
+.wallet-eye { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; color: #fff; background: transparent; cursor: pointer; }
+.wallet-balance { margin-top: 14px; min-height: 61px; }
+.wallet-balance-value, .wallet-hidden-value { color: #fff; font: 800 clamp(40px, 5vw, 54px)/1 "Montserrat Alternates", sans-serif; letter-spacing: -.05em; }
+.wallet-hidden-value { letter-spacing: .08em; }
+.wallet-currency { display: flex; align-items: center; gap: 8px; margin-top: 8px; color: rgba(255,255,255,.9); font: 700 17px "Montserrat Alternates", sans-serif; }
+.wallet-movements-link { position: relative; z-index: 3; display: inline-flex; align-items: center; gap: 12px; margin-top: 36px; padding: 11px 18px; border: 1px solid rgba(255,255,255,.7); border-radius: 999px; color: #fff; font: 700 12px "Montserrat Alternates", sans-serif; transition: background .18s, transform .18s; }
+.wallet-movements-link:hover { background: rgba(255,255,255,.16); transform: translateY(-2px); }
+.coin { display: block; border: 2px solid #ffca16; border-radius: 50%; background: radial-gradient(circle at 36% 30%, #fff18a 0 9%, #ffd52d 10% 42%, #f5a900 43% 72%, #c77800 73% 100%); box-shadow: inset -3px -3px 0 rgba(165,85,0,.22), 0 7px 12px rgba(0,0,0,.18); transform: rotate(-24deg) skewY(-8deg); }
+.coin-small { width: 19px; height: 12px; border-width: 1px; }
+.coin-large { position: absolute; right: 30px; top: 77px; width: 53px; height: 34px; }
+.coin-medium { position: absolute; right: 105px; top: 27px; width: 27px; height: 18px; }
+.coin-tiny { position: absolute; right: 72px; top: 130px; width: 19px; height: 12px; }
+.wallet-art { position: absolute; inset: 0; pointer-events: none; }
+.wallet-wave, .graphic-wave { position: absolute; display: block; border: 12px solid #4d13f2; border-left-color: transparent; border-right-color: transparent; border-radius: 50%; transform: rotate(-10deg); }
+.wallet-wave-one { width: 350px; height: 115px; right: -65px; bottom: -61px; }
+.wallet-wave-two { width: 360px; height: 90px; right: -48px; bottom: -43px; border-color: #6b23ff; opacity: .8; }
+.quick-actions-panel { min-width: 0; }
+.quick-actions-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.quick-actions-heading h2 { margin: 0; color: var(--brand-dark); font: 800 16px "Montserrat Alternates", sans-serif; }
+.quick-actions-heading span { overflow: hidden; color: var(--brand-muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.quick-actions-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.quick-action { display: flex; min-width: 0; align-items: center; flex-direction: column; gap: 8px; color: var(--brand-dark); text-align: center; font: 700 12px/1.2 "Montserrat Alternates", sans-serif; }
+.quick-action-icon { display: grid; place-items: center; width: 76px; height: 76px; border-radius: 50%; color: var(--brand-purple-strong); background: #eeeaff; transition: transform .18s, background .18s, color .18s; }
+.quick-action-primary .quick-action-icon { color: #fff; background: var(--brand-purple); box-shadow: 0 10px 22px rgba(50,4,217,.25); }
+.quick-action:hover .quick-action-icon { transform: translateY(-4px); color: #fff; background: var(--brand-purple); }
+.dashboard-graphic-strip { position: relative; height: 86px; margin-top: -8px; overflow: hidden; background: linear-gradient(180deg, transparent, rgba(238,234,255,.82)); }
+.graphic-wave-one { width: 110%; height: 70px; left: -3%; bottom: -39px; border-width: 9px; border-color: #4311df; }
+.graphic-wave-two { width: 115%; height: 48px; left: -8%; bottom: -22px; border-width: 5px; border-color: #6e48fa; opacity: .85; }
+.graphic-coin { position: absolute; z-index: 2; width: 37px; height: 23px; }
+.graphic-coin-one { left: 9%; top: 14px; transform: rotate(-28deg); }
+.graphic-coin-two { left: 52%; top: 25px; transform: rotate(18deg); }
+.graphic-coin-three { right: 10%; top: 36px; transform: rotate(-36deg); }
+
 /* Contexto de titularidad y workspaces: densos en escritorio y apilados en móvil. */
 .ownership-card { background: #150259; border-color: transparent; color: #fff; }
 .ownership-label { margin: 0 0 6px; color: #aebaff; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
