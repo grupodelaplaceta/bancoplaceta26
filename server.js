@@ -261,6 +261,13 @@ app.get("/bff/nominas", requireAuth, bff(async (req, res) => {
   });
 }));
 
+app.post("/bff/nominas/trabajadores", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffPost(token, "/api/web/nominas/trabajadores", req.body || {});
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  return res.status(r.ok ? 201 : upstreamStatus(r)).json(r.body);
+}));
+
 app.get("/bff/tributos", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
   const r = await bffGet(token, cuentaPath(req, "/api/web/tributos"));
