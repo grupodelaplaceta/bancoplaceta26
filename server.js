@@ -8,7 +8,7 @@ import { loginUrl, validateToken } from "./lib/placetaid.js";
 import { getToken, setTokenCookie, clearTokenCookie, getCuenta, setCuentaCookie } from "./lib/session.js";
 import { webGet, webPost, publicPaymentLink } from "./lib/bancoApi.js";
 import { cargarValoresBancarios } from "./lib/bolp.js";
-import { generarJustificanteDeclaracion } from "./lib/pdfJustificante.js";
+import { generarJustificanteDeclaracion, generarComprobanteTransferencia } from "./lib/pdfJustificante.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -190,6 +190,21 @@ app.get("/bff/movimientos", requireAuth, bff(async (req, res) => {
   return res.json(r.body);
 }));
 
+app.get("/bff/movimientos/:id/comprobante.pdf", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const id = encodeURIComponent(String(req.params.id || ""));
+  const r = await bffGet(token, `/api/web/movimientos/${id}`);
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok || !r.body?.movimiento) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "movimiento_no_encontrado" });
+  const me = await bffGet(token, "/api/web/cuenta");
+  const usuario = me.body?.usuario || {};
+  return generarComprobanteTransferencia(res, {
+    nombre: usuario.displayName,
+    dip: usuario.dip,
+    movimiento: r.body.movimiento
+  });
+}));
+
 app.get("/bff/tarjetas", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
   const cuenta = String(req.query.cuenta || getCuenta(req) || "");
@@ -218,17 +233,32 @@ app.get("/bff/inversiones", requireAuth, bff(async (req, res) => {
 app.get("/bff/nominas", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
   const cuenta = String(req.query.cuenta || getCuenta(req) || "").trim();
-  let r = await bffGet(token, cuentaPath(req, "/api/web/nominas"));
-  // Compatibilidad con despliegues del API que aún no aceptan el contexto
-  // cuenta en la consulta. Nunca devolvemos el 405 opaco al panel.
-  if (r.status === 405 && cuenta) r = await bffGet(token, "/api/web/nominas");
+  // No enviamos `cuenta` al upstream: algunas versiones desplegadas de la
+  // API solo aceptan GET /api/web/nominas y respondían 405. El alcance se
+  // resuelve aquí por EIP, manteniendo el companyAccountId real de cada nómina.
+  const r = await bffGet(token, "/api/web/nominas");
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
   if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   const body = r.body || {};
   if (!cuenta) return res.json(body);
-  const contratos = (body.contratos || []).filter((contrato) => contrato.companyAccountId === cuenta || contrato.accountId === cuenta);
+
+  const me = await bffGet(token, "/api/web/cuenta");
+  if (!me.ok) return res.status(upstreamStatus(me)).json({ error: me.body?.error || "banco_no_disponible" });
+  const cuentas = Array.isArray(me.body?.cuentas) ? me.body.cuentas : [];
+  const seleccionada = cuentas.find((item) => item.id === cuenta);
+  if (!seleccionada) return res.status(404).json({ error: "cuenta_no_encontrada" });
+  const eip = String(seleccionada.eip || "").trim().toUpperCase();
+  const cuentasEip = new Set(cuentas.filter((item) => eip && String(item.eip || "").trim().toUpperCase() === eip).map((item) => item.id));
+  const contratos = (body.contratos || []).filter((contrato) =>
+    cuentasEip.size > 0 ? cuentasEip.has(contrato.companyAccountId) : contrato.companyAccountId === cuenta || contrato.accountId === cuenta
+  );
   const ids = new Set(contratos.map((contrato) => contrato.id));
-  return res.json({ ...body, contratos, resumenes: (body.resumenes || []).filter((resumen) => ids.has(resumen.contrato?.id || resumen.contractId)), periodos: (body.periodos || []).filter((periodo) => periodo.companyAccountId === cuenta || periodo.contractId && ids.has(periodo.contractId)) });
+  return res.json({
+    ...body,
+    contratos,
+    resumenes: (body.resumenes || []).filter((resumen) => ids.has(resumen.contrato?.id || resumen.contractId)),
+    periodos: (body.periodos || []).filter((periodo) => (cuentasEip.size > 0 ? cuentasEip.has(periodo.companyAccountId) : periodo.companyAccountId === cuenta) || periodo.contractId && ids.has(periodo.contractId))
+  });
 }));
 
 app.get("/bff/tributos", requireAuth, bff(async (req, res) => {
