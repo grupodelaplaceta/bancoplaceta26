@@ -269,6 +269,15 @@ app.get("/bff/contactos", requireAuth, bff(async (req, res) => {
   return res.json(r.body);
 }));
 
+app.get("/bff/nominas/trabajadores/buscar", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const dip = encodeURIComponent(String(req.query.dip || "").trim());
+  const r = await bffGet(token, `/api/web/nominas/trabajadores/buscar?dip=${dip}`);
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
+  return res.json(r.body);
+}));
+
 app.post("/bff/nominas/trabajadores", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
   const r = await bffPost(token, "/api/web/nominas/trabajadores", req.body || {});

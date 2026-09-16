@@ -10,6 +10,8 @@ export default function Nominas({ cuenta }) {
   const [form, setForm] = useState({ employeeDip: "", employeeName: "", employeeAccountId: "", roleTitle: "Trabajador", grossSalaryPz: "200", startDate: new Date().toISOString().slice(0, 10), frequency: "Weekly", complementos: [] });
   const [contactos, setContactos] = useState([]);
   const [complemento, setComplemento] = useState({ concepto: "", importePz: "", tipo: "cargo", periodicidad: "mensual" });
+  const [buscandoTrabajador, setBuscandoTrabajador] = useState(false);
+  const [busquedaError, setBusquedaError] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -30,6 +32,21 @@ export default function Nominas({ cuenta }) {
   const contratos = data?.contratos || [];
   const resumenes = data?.resumenes || [];
   const esEmpresa = ["business", "empresa"].includes(String(cuenta?.type || "").toLowerCase());
+
+  const buscarTrabajador = async () => {
+    setBusquedaError(null);
+    setBuscandoTrabajador(true);
+    try {
+      const result = await api.buscarTrabajador(form.employeeDip);
+      const cuentaEncontrada = result.cuentas?.[0];
+      if (!cuentaEncontrada) throw new Error("No se ha encontrado una cuenta corriente para ese DIP");
+      setForm({ ...form, employeeAccountId: cuentaEncontrada.id, employeeDip: cuentaEncontrada.employeeDip, employeeName: cuentaEncontrada.displayName });
+    } catch (error) {
+      setBusquedaError(error.message);
+    } finally {
+      setBuscandoTrabajador(false);
+    }
+  };
 
   const altaTrabajador = async (event) => {
     event.preventDefault();
@@ -79,15 +96,19 @@ export default function Nominas({ cuenta }) {
         <Card>
           <SectionTitle title="Dar de alta trabajador" subtitle="La nómina se asociará a esta cuenta bancaria y a su EIP." className="mb-3" />
           <form onSubmit={altaTrabajador} className="grid gap-3 md:grid-cols-2">
-            <select required value={form.employeeAccountId} onChange={(e) => {
+            <select value={form.employeeAccountId} onChange={(e) => {
               const contact = contactos.find((item) => item.accountId === e.target.value);
               setForm({ ...form, employeeAccountId: e.target.value, employeeDip: contact?.employeeDip || "", employeeName: contact?.displayName || "" });
             }} className="rounded-xl border border-brand/15 bg-white px-3 py-2 text-sm md:col-span-2">
               <option value="">Selecciona un trabajador/contacto guardado</option>
               {contactos.map((contacto) => <option key={contacto.accountId} value={contacto.accountId}>{contacto.displayName} · {contacto.employeeDip}</option>)}
             </select>
-            <input required placeholder="DIP trabajador" value={form.employeeDip} readOnly className="rounded-xl border border-brand/15 bg-brand/5 px-3 py-2 text-sm" />
+            <div className="flex gap-2 md:col-span-2">
+              <input required placeholder="DIP trabajador" value={form.employeeDip} onChange={(e) => setForm({ ...form, employeeDip: e.target.value.toUpperCase(), employeeAccountId: "", employeeName: "" })} className="min-w-0 flex-1 rounded-xl border border-brand/15 px-3 py-2 text-sm" />
+              <button type="button" disabled={buscandoTrabajador || !form.employeeDip} onClick={buscarTrabajador} className="rounded-xl bg-brand/10 px-3 py-2 text-sm font-bold text-brand disabled:opacity-50">{buscandoTrabajador ? "Buscando…" : "Buscar DIP"}</button>
+            </div>
             <input required placeholder="Nombre del trabajador" value={form.employeeName} readOnly className="rounded-xl border border-brand/15 bg-brand/5 px-3 py-2 text-sm" />
+            {busquedaError && <p className="text-sm text-red-600 md:col-span-2">{busquedaError}</p>}
             <input required placeholder="Puesto / función" value={form.roleTitle} onChange={(e) => setForm({ ...form, roleTitle: e.target.value })} className="rounded-xl border border-brand/15 px-3 py-2 text-sm" />
             <input required min="0" type="number" placeholder="Salario bruto Pz" value={form.grossSalaryPz} onChange={(e) => setForm({ ...form, grossSalaryPz: e.target.value })} className="rounded-xl border border-brand/15 px-3 py-2 text-sm" />
             <input required type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="rounded-xl border border-brand/15 px-3 py-2 text-sm" />
@@ -105,8 +126,8 @@ export default function Nominas({ cuenta }) {
               </div>
               <p className="mt-2 text-xs text-brand-dark/60">Cargo: fijo mensual. Actividad: solo se paga cuando la empresa la confirma, igual que en la app.</p>
             </div>
-            <button disabled={saving || !contactos.length} type="submit" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white disabled:opacity-50 md:col-span-2">{saving ? "Guardando…" : "Guardar contrato por DIP"}</button>
-            {!contactos.length && <p className="text-sm text-brand-dark/60 md:col-span-2">Guarda primero al trabajador como contacto desde la app/banco para poder verificar su cuenta personal.</p>}
+            <button disabled={saving || !form.employeeAccountId} type="submit" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white disabled:opacity-50 md:col-span-2">{saving ? "Guardando…" : "Guardar contrato por DIP"}</button>
+            {!contactos.length && <p className="text-sm text-brand-dark/60 md:col-span-2">Puedes buscar directamente por DIP; los contactos guardados solo son un acceso rápido.</p>}
             {formError && <p className="text-sm text-red-600 md:col-span-2">{formError}</p>}
           </form>
         </Card>
