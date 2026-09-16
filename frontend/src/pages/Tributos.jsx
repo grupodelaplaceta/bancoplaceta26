@@ -5,6 +5,8 @@ import { api, formatPz, formatFecha } from "@/lib/api";
 export default function Tributos({ cuenta }) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
+  const [baseSimulada, setBaseSimulada] = useState("");
+  const [tipoSimulado, setTipoSimulado] = useState("10");
 
   useEffect(() => {
     let alive = true;
@@ -27,6 +29,12 @@ export default function Tributos({ cuenta }) {
         title="Tributos"
         subtitle="Tus declaraciones tributarias (IRM/IGF) y las de tus empresas."
       />
+
+      <Card className="tax-estimator-card">
+        <div className="tax-estimator-heading"><div><p className="eyebrow">Simulador orientativo</p><h3>Estimación de tributo</h3><p>Calcula una referencia sin modificar declaraciones ni saldos.</p></div><span aria-hidden="true">≈</span></div>
+        <div className="tax-estimator-fields"><label>Base estimada (Pz)<input type="number" min="0" inputMode="decimal" value={baseSimulada} onChange={(event) => setBaseSimulada(event.target.value)} placeholder="0" /></label><label>Tipo orientativo<input type="number" min="0" max="100" step="0.1" value={tipoSimulado} onChange={(event) => setTipoSimulado(event.target.value)} /></label></div>
+        <div className="tax-estimator-result"><span>Resultado aproximado</span><strong>{formatPz((Number(baseSimulada) || 0) * (Number(tipoSimulado) || 0) / 100)} Pz</strong><small>No es una liquidación oficial. Consulta el resultado emitido por RSP.</small></div>
+      </Card>
 
       <Card>
         {!data && !err ? (

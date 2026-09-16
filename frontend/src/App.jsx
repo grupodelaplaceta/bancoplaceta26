@@ -37,6 +37,7 @@ const NAV = [
 
     { id: "tributos", label: "Tributos", icon: "receipt" },
     { id: "facturacion", label: "Facturación", icon: "building" },
+    { id: "nominas", label: "Nóminas", icon: "receipt" },
     { id: "subvenciones", label: "Subvenciones", icon: "chart" },
   ]},
   { group: "Otros", items: [
@@ -229,10 +230,10 @@ export default function App() {
         <AnimatePresence mode="wait">
           <motion.div
             key={route}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
           >
             <Suspense fallback={<div className="page-loading"><Spinner /><span>Cargando sección…</span></div>}>
               <Page cuenta={cuenta} cuentas={me.cuentas || []} me={me} />

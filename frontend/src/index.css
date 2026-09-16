@@ -422,11 +422,29 @@ body{background:#f4f5ff;background-image:radial-gradient(900px 420px at 92% -10%
 .header{margin-bottom:26px}.header h1{font-size:28px;letter-spacing:-.04em}.page-loading{min-height:340px;color:#4f4a73}
 .dashboard-brand-art{right:30px;top:30px;width:170px;height:82px}
 @media(max-width:820px){.main{padding:74px 14px 28px}.header{margin-bottom:20px}.header h1{font-size:23px}.sidebar{box-shadow:18px 0 48px #1502592e}.app-brand-logo-wrap{padding:7px 6px}.app-brand-logo{width:min(100%,205px)}}
-@media(max-width:460px){.main{padding-inline:12px}.app-loading-panel{min-height:220px;padding:22px}.dashboard-brand-art{display:none}.account-profile-card > div:first-child{gap:10px}.account-profile-card h2{font-size:16px}.account-context-card{min-height:150px}.workspace-heading{display:block}.month-picker{margin-top:-6px}.workspace-summary{min-height:92px;padding:13px}.workspace-summary strong{font-size:23px}.invoice-row{align-items:flex-start;flex-wrap:wrap}.invoice-main{min-width:calc(100% - 45px);flex-basis:calc(100% - 45px)}.invoice-amount{margin-left:27px}.invoice-row .inline-flex{margin-left:27px}.company-invoices-actions{align-items:stretch;flex-direction:column}.company-invoices-actions button{width:100%}}
+@media(max-width:460px){.main{padding-inline:12px}.app-loading-panel{min-height:220px;padding:22px}.dashboard-brand-art{display:none}.account-profile-card > div:first-child{gap:10px}.account-profile-card h2{font-size:16px}.account-context-card{min-height:150px}.workspace-heading{display:block}.month-picker{margin-top:-6px}.workspace-summary{min-height:92px;padding:13px}.workspace-summary strong{font-size:23px}.invoice-row{align-items:flex-start;flex-wrap:wrap}.invoice-main{min-width:calc(100% - 45px);flex-basis:calc(100% - 45px)}.invoice-amount{margin-left:27px}.invoice-row .inline-flex{margin-left:27px}.company-invoices-actions{align-items:stretch;flex-direction:column}.company-invoices-actions button{width:100%}.tax-estimator-fields{grid-template-columns:1fr}.tax-estimator-card{padding:18px}}
 
 @media(min-width:821px){.workspace-page{max-width:940px}.workspace-page > .responsive-card{padding:24px}.workspace-page .card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
-/* Workspaces de empresa e inversiones: densos en escritorio y apilados en móvil. */
+/* Contexto de titularidad y workspaces: densos en escritorio y apilados en móvil. */
+.ownership-card { background: #150259; border-color: transparent; color: #fff; }
+.ownership-label { margin: 0 0 6px; color: #aebaff; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.ownership-value { margin: 0 0 14px; font-family: "Montserrat Alternates", sans-serif; font-size: 18px; font-weight: 800; overflow-wrap: anywhere; }
+.ownership-meta { display: flex; justify-content: space-between; gap: 16px; padding-top: 10px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,.14); color: rgba(255,255,255,.64); font-size: 11px; }
+.ownership-meta strong { color: #fff; overflow-wrap: anywhere; text-align: right; }
+.tax-estimator-card { background: #21038C; border-color: transparent; color: #fff; }
+.tax-estimator-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.tax-estimator-heading h3 { margin: 0; font: 800 18px "Montserrat Alternates", sans-serif; }
+.tax-estimator-heading p:last-child { margin: 4px 0 0; color: rgba(255,255,255,.68); font-size: 12px; }
+.tax-estimator-heading > span { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 13px; background: #3204D9; color: #fff; font: 800 22px "Montserrat Alternates", sans-serif; }
+.tax-estimator-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 18px; }
+.tax-estimator-fields label { display: flex; flex-direction: column; gap: 6px; color: rgba(255,255,255,.72); font-size: 11px; font-weight: 800; }
+.tax-estimator-fields input { min-height: 42px; border: 1px solid rgba(255,255,255,.2); border-radius: 11px; padding: 0 11px; background: rgba(255,255,255,.1); color: #fff; font: 700 14px "Plus Jakarta Sans", sans-serif; }
+.tax-estimator-fields input::placeholder { color: rgba(255,255,255,.45); }
+.tax-estimator-result { display: flex; flex-direction: column; gap: 4px; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.15); }
+.tax-estimator-result span, .tax-estimator-result small { color: rgba(255,255,255,.65); font-size: 11px; }
+.tax-estimator-result strong { font: 800 25px "Montserrat Alternates", sans-serif; }
+.workspace-page { min-width: 0; }
 .workspace-page { min-width: 0; }
 .workspace-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .month-picker { display: flex; flex-direction: column; gap: 6px; color: var(--brand-muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }

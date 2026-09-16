@@ -18,8 +18,15 @@ export default function Gestores({ cuenta }) {
   }, [cuenta?.id]);
 
   return (
-    <div className="space-y-6">
-      <SectionTitle title="Gestores y cotitulares" subtitle="Personas con acceso a tus cuentas." />
+    <div className="workspace-page space-y-6">
+      <SectionTitle title="Titularidad y accesos" subtitle={`Personas vinculadas a ${cuenta?.displayName || "la cuenta seleccionada"}.`} />
+
+      <Card className="ownership-card">
+        <p className="ownership-label">Titular de la cuenta</p>
+        <p className="ownership-value">{cuenta?.titularDip || "Titular identificado en PlacetaID"}</p>
+        <div className="ownership-meta"><span>Cuenta activa</span><strong>{cuenta?.id || "—"}</strong></div>
+        {cuenta?.cotitularDip && <div className="ownership-meta"><span>Cotitular</span><strong>{cuenta.cotitularDip}</strong></div>}
+      </Card>
 
       <Card>
         {!data && !err ? (
@@ -38,7 +45,7 @@ export default function Gestores({ cuenta }) {
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-brand-dark">{g.displayName || g.placetaId}</p>
-                    <p className="text-xs text-brand-dark/50">{g.placetaId}</p>
+                    <p className="text-xs text-brand-dark/50">{g.placetaId} · {g.accountId || cuenta?.id}</p>
                   </div>
                 </div>
                 <div className="text-right">

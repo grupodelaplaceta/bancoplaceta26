@@ -38,6 +38,8 @@ export default function Placezum({ cuenta, cuentas }) {
   const [payError, setPayError] = useState(null);
 
   const left = useCountdown(codigo ? 120 : 0);
+  const esEmpresa = ["business", "empresa", "organismo", "state"].includes(String(cuenta?.type || "").toLowerCase());
+  const nombreServicio = esEmpresa ? "PlaceZUM Empresa" : "PlaceZUM";
 
   const generar = async () => {
     setLoading(true);
@@ -79,8 +81,8 @@ export default function Placezum({ cuenta, cuentas }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <SectionTitle
-          title="PlaceZUM"
-          subtitle="Cobra o paga en un zum con un código temporal de 5 dígitos."
+          title={nombreServicio}
+          subtitle={esEmpresa ? "Cobra a clientes y ordena pagos desde la cuenta de empresa." : "Cobra o paga en un zum con un código temporal de 5 dígitos."}
           className="mb-0"
         />
         <div className="flex rounded-xl border border-brand/15 bg-white p-1">
@@ -122,7 +124,7 @@ export default function Placezum({ cuenta, cuentas }) {
                 className="mt-5 flex flex-col items-center gap-4 rounded-2xl bg-brand/5 p-6"
               >
                 <p className="text-xs font-bold uppercase tracking-widest text-brand-dark/50">
-                  Tu código PlaceZUM
+                  Tu código {nombreServicio}
                 </p>
                 <div className="flex gap-2">
                   {String(codigo)
