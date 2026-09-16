@@ -12,6 +12,8 @@ export default function Nominas({ cuenta }) {
   const [complemento, setComplemento] = useState({ concepto: "", importePz: "", tipo: "cargo", periodicidad: "mensual" });
   const [buscandoTrabajador, setBuscandoTrabajador] = useState(false);
   const [busquedaError, setBusquedaError] = useState(null);
+  const [expandedContractId, setExpandedContractId] = useState(null);
+  const [endingId, setEndingId] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -31,7 +33,17 @@ export default function Nominas({ cuenta }) {
 
   const contratos = data?.contratos || [];
   const resumenes = data?.resumenes || [];
+  const periodos = data?.periodos || [];
   const esEmpresa = ["business", "empresa"].includes(String(cuenta?.type || "").toLowerCase());
+  const proximoPago = (contract) => {
+    const dias = contract.frequency === "Monthly" ? 30 : contract.frequency === "Biweekly" ? 14 : 7;
+    const fecha = new Date(Date.now() + dias * 86400000);
+    const fijos = (contract.complementos || []).filter((item) => item.tipo !== "actividad" && item.activo !== false).reduce((total, item) => total + (Number(item.importePz) || 0) / (item.periodicidad === "anual" ? 12 : 1), 0);
+    const bruto = Number(contract.grossSalaryPz || 0) + fijos;
+    const retencion = bruto * Number(data?.config?.retencionPct || 0) / 100;
+    return { fecha, bruto, neto: bruto - retencion };
+  };
+  const costeProximosPagos = contratos.filter((contract) => contract.status !== "Ended").reduce((total, contract) => total + proximoPago(contract).bruto, 0);
 
   const buscarTrabajador = async () => {
     setBusquedaError(null);
@@ -45,6 +57,20 @@ export default function Nominas({ cuenta }) {
       setBusquedaError(error.message);
     } finally {
       setBuscandoTrabajador(false);
+    }
+  };
+
+  const despedirTrabajador = async (contract) => {
+    if (!window.confirm(`¿Finalizar el contrato de ${contract.employeeName || contract.employeeDip}?`)) return;
+    setEndingId(contract.id);
+    try {
+      await api.despedirTrabajador(contract.id);
+      const actualizado = await api.nominas(cuenta.id);
+      setData(actualizado);
+    } catch (error) {
+      setFormError(error.message);
+    } finally {
+      setEndingId(null);
     }
   };
 
@@ -143,22 +169,40 @@ export default function Nominas({ cuenta }) {
           <EmptyState title="Sin contratos de nómina" hint="No hay contratos activos a tu nombre." />
         ) : (
           <ul className="divide-y divide-brand/5">
-            {contratos.map((c) => (
-              <li key={c.id} className="flex items-center justify-between gap-3 py-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-brand-dark">
-                    {c.roleTitle || c.role || c.position || "Contrato"} · {c.employeeDip || c.placetaId || ""}
-                  </p>
-                  <p className="text-xs text-brand-dark/50">{c.employeeName || c.companyName || ""}</p>
-                </div>
-                <span className="text-sm font-extrabold text-brand">
-                  {c.grossSalaryPz != null ? formatPz(c.grossSalaryPz) + " Pz" : c.salaryPz != null ? formatPz(c.salaryPz) + " Pz" : "—"}
-                </span>
-              </li>
-            ))}
+            {contratos.map((c) => {
+              const abierto = expandedContractId === c.id;
+              const estimacion = proximoPago(c);
+              return <li key={c.id} className="py-2">
+                <button type="button" onClick={() => setExpandedContractId(abierto ? null : c.id)} className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left hover:bg-brand/5">
+                  <span className="min-w-0"><span className="block truncate text-sm font-semibold text-brand-dark">{c.roleTitle || "Trabajador"} · {c.employeeDip || ""}</span><span className="block text-xs text-brand-dark/50">{c.employeeName || ""} · {c.status === "Ended" ? "Finalizado" : "Activo"}</span></span>
+                  <span className="text-right"><span className="block text-sm font-extrabold text-brand">{formatPz(c.grossSalaryPz || 0)} Pz</span><span className="text-xs text-brand-dark/50">{c.frequency || "Weekly"}</span></span>
+                </button>
+                {abierto && <div className="mx-3 mb-2 rounded-xl border border-brand/10 bg-brand/5 p-4 text-sm">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div><p className="text-xs text-brand-dark/50">Empresa / EIP</p><p className="font-bold">{cuenta?.displayName} · {cuenta?.eip || "—"}</p></div>
+                    <div><p className="text-xs text-brand-dark/50">Cuenta que abona</p><p className="font-bold">{c.companyAccountId}</p></div>
+                    <div><p className="text-xs text-brand-dark/50">Trabajador</p><p className="font-bold">{c.employeeName} · {c.employeeDip}</p></div>
+                    <div><p className="text-xs text-brand-dark/50">Cuenta abonada</p><p className="font-bold">{c.employeeAccountId}</p></div>
+                    <div><p className="text-xs text-brand-dark/50">Alta</p><p className="font-bold">{c.startDate || "—"}</p></div>
+                    <div><p className="text-xs text-brand-dark/50">Estimación próximo pago</p><p className="font-bold">{formatFecha(estimacion.fecha)} · {formatPz(estimacion.neto)} Pz netos</p></div>
+                  </div>
+                  {(c.complementos || []).length > 0 && <div className="mt-3 border-t border-brand/10 pt-3"><p className="mb-1 font-bold">Complementos</p>{c.complementos.map((item) => <p key={item.id} className="text-xs text-brand-dark/65">{item.concepto} · {formatPz(item.importePz)} Pz · {item.tipo === "actividad" ? "Actividad confirmable" : "Cargo fijo"}</p>)}</div>}
+                  {c.status !== "Ended" && <button type="button" disabled={endingId === c.id} onClick={() => despedirTrabajador(c)} className="mt-4 rounded-lg bg-rose-500 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{endingId === c.id ? "Finalizando…" : "Finalizar / despedir trabajador"}</button>}
+                </div>}
+              </li>;
+            })}
           </ul>
         )}
       </Card>
+
+      {esEmpresa && <Card>
+        <SectionTitle title="Calendario y próximos pagos" subtitle={`Coste bruto estimado de la próxima ronda: ${formatPz(costeProximosPagos)} Pz.`} className="mb-3" />
+        {contratos.filter((contract) => contract.status !== "Ended").map((contract) => {
+          const estimacion = proximoPago(contract);
+          return <div key={contract.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-brand/5 py-2 text-sm last:border-0"><span><b>{contract.employeeName || contract.employeeDip}</b><span className="ml-2 text-xs text-brand-dark/50">{contract.frequency || "Weekly"}</span></span><span className="text-right"><b>{formatFecha(estimacion.fecha)}</b><span className="ml-2 text-brand">{formatPz(estimacion.neto)} Pz netos</span></span></div>;
+        })}
+        {periodos.length > 0 && <div className="mt-4 border-t border-brand/10 pt-3"><p className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-dark/50">Periodos registrados</p>{periodos.slice(0, 8).map((periodo) => <div key={periodo.id} className="flex flex-wrap items-center justify-between gap-2 py-1 text-xs"><span>{periodo.label || `Nómina ${periodo.periodo}`} · {periodo.employeeName || periodo.employeeDip}</span><span>{periodo.status || "Pending"} · {formatPz(periodo.netoPz || 0)} Pz <a className="ml-2 font-bold text-brand underline" href={`/bff/nominas/periodos/${encodeURIComponent(periodo.id)}/pdf`}>PDF</a></span></div>)}</div>}
+      </Card>}
 
       <Card>
         <SectionTitle title="Resúmenes" className="mb-3" />

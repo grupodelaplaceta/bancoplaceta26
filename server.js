@@ -190,6 +190,14 @@ app.get("/bff/movimientos", requireAuth, bff(async (req, res) => {
   return res.json(r.body);
 }));
 
+app.post("/bff/nominas/trabajadores/:id/despedir", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const id = encodeURIComponent(String(req.params.id || ""));
+  const r = await bffPost(token, `/api/web/nominas/trabajadores/${id}/despedir`, {});
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  return res.status(r.ok ? 200 : upstreamStatus(r)).json(r.body);
+}));
+
 app.get("/bff/nominas/periodos/:id/pdf", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
   const id = encodeURIComponent(String(req.params.id || ""));
