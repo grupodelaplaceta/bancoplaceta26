@@ -101,8 +101,15 @@ app.post("/cuenta/seleccionar", requireAuth, (req, res) => {
   res.redirect(String((req.body || {}).volver || "/"));
 });
 
-app.get("/login", (req, res) => {
-  if (getToken(req)) return res.redirect("/");
+app.get("/login", async (req, res) => {
+  const token = getToken(req);
+  if (token) {
+    const validated = await validateToken(token);
+    if (validated) return res.redirect("/");
+    // Una cookie puede sobrevivir a la caducidad del token. Limpiarla aquí
+    // evita el bucle /login → / → /login en navegadores con sesiones antiguas.
+    clearTokenCookie(res);
+  }
   const returnTo = safeReturnTo(req.query.returnTo);
   const callbackUrl = `${publicOrigin(req)}/auth/callback?returnTo=${encodeURIComponent(returnTo)}`;
   res.render("login", { layout: false, loginUrl: loginUrl(callbackUrl), error: req.query.error || null });
@@ -307,7 +314,10 @@ app.get("/", async (req, res, next) => {
   const token = getToken(req);
   if (!token) return res.render("public-home", { layout: false });
   const r = await webGet(token, "/api/web/cuenta");
-  if (r.status === 401) return res.redirect("/login");
+  if (r.status === 401) {
+    clearTokenCookie(res);
+    return res.redirect("/login?error=sesion_expirada");
+  }
   // Un DIP de PlacetaID sin registro bancario se autorregistra (no es un error).
   if (r.status === 404 && r.body?.error === "titular_no_encontrado") return res.redirect("/registro");
   if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudo conectar con el banco en este momento." });
