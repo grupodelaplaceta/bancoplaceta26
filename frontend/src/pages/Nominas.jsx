@@ -187,7 +187,8 @@ export default function Nominas({ cuenta }) {
                     <div><p className="text-xs text-brand-dark/50">Estimación próximo pago</p><p className="font-bold">{formatFecha(estimacion.fecha)} · {formatPz(estimacion.neto)} Pz netos</p></div>
                   </div>
                   {(c.complementos || []).length > 0 && <div className="mt-3 border-t border-brand/10 pt-3"><p className="mb-1 font-bold">Complementos</p>{c.complementos.map((item) => <p key={item.id} className="text-xs text-brand-dark/65">{item.concepto} · {formatPz(item.importePz)} Pz · {item.tipo === "actividad" ? "Actividad confirmable" : "Cargo fijo"}</p>)}</div>}
-                  {c.status !== "Ended" && <button type="button" disabled={endingId === c.id} onClick={() => despedirTrabajador(c)} className="mt-4 rounded-lg bg-rose-500 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{endingId === c.id ? "Finalizando…" : "Finalizar / despedir trabajador"}</button>}
+                  <a className="mt-4 inline-block rounded-lg bg-brand/10 px-3 py-2 text-xs font-bold text-brand" href={`/bff/nominas/contratos/${encodeURIComponent(c.id)}/pdf`}>Descargar PDF de nómina</a>
+                  {c.status !== "Ended" && <button type="button" disabled={endingId === c.id} onClick={() => despedirTrabajador(c)} className="ml-2 mt-4 rounded-lg bg-rose-500 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{endingId === c.id ? "Finalizando…" : "Finalizar / despedir trabajador"}</button>}
                 </div>}
               </li>;
             })}

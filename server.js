@@ -198,6 +198,15 @@ app.post("/bff/nominas/trabajadores/:id/despedir", requireAuth, bff(async (req, 
   return res.status(r.ok ? 200 : upstreamStatus(r)).json(r.body);
 }));
 
+app.get("/bff/nominas/contratos/:id/pdf", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const id = encodeURIComponent(String(req.params.id || ""));
+  const r = await bffGet(token, `/api/web/nominas/contratos/${id}/pdf-data`);
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok || !r.body?.contrato) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "contrato_no_encontrado" });
+  return generarComprobanteNomina(res, r.body);
+}));
+
 app.get("/bff/nominas/periodos/:id/pdf", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
   const id = encodeURIComponent(String(req.params.id || ""));
