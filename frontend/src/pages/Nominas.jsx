@@ -8,6 +8,8 @@ export default function Nominas({ cuenta }) {
 
   useEffect(() => {
     let alive = true;
+    setData(null);
+    setErr(null);
     api
       .nominas(cuenta?.id)
       .then((r) => alive && setData(r))
@@ -23,7 +25,7 @@ export default function Nominas({ cuenta }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SectionTitle title="Nóminas" subtitle="Tu sistema de nóminas, integrado." className="mb-0" />
+        <SectionTitle title="Nóminas" subtitle={`Contratos y periodos de ${cuenta?.displayName || "la cuenta seleccionada"}.`} className="mb-0" />
         {data && (
           <div className="flex gap-2">
             {data.soyEmpresa && <Badge tone="brand">Empresa</Badge>}

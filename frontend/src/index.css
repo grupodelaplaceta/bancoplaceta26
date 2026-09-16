@@ -418,7 +418,7 @@ body{background:#f4f5ff;background-image:radial-gradient(900px 420px at 92% -10%
 .nav-item{border-radius:14px;padding:11px 14px;font-size:15px;color:#4f4a73}
 .nav-item:hover{background:#eef0ff;color:#3204D9}
 .nav-item-active{background:#3204D9;color:#fff;box-shadow:0 10px 22px #3204D933}
-.main{max-width:1180px;padding:30px 36px}
+.main{max-width:1180px;padding:30px 36px;min-width:0}.account-mode-company .eyebrow{color:#2E06BF}.account-mode-junior .eyebrow{color:#6B7FF2}.account-mode-company .account-profile-card{border-top:3px solid #2E06BF}.account-mode-junior .account-profile-card{border-top:3px solid #6B7FF2}
 .header{margin-bottom:26px}.header h1{font-size:28px;letter-spacing:-.04em}.page-loading{min-height:340px;color:#4f4a73}
 .dashboard-brand-art{right:30px;top:30px;width:170px;height:82px}
 @media(max-width:820px){.main{padding:74px 14px 28px}.header{margin-bottom:20px}.header h1{font-size:23px}.sidebar{box-shadow:18px 0 48px #1502592e}.app-brand-logo-wrap{padding:7px 6px}.app-brand-logo{width:min(100%,205px)}}

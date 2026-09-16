@@ -117,6 +117,7 @@ export default function App() {
 
   const tipoCuenta = String(cuenta?.type || "").toLowerCase();
   const cuentaJunior = tipoCuenta === "junior" || tipoCuenta.includes("juvenil");
+  const cuentaEmpresa = ["business", "empresa", "organismo", "state"].includes(tipoCuenta);
   const navVisible = useMemo(() => cuentaJunior
     ? NAV.map((section) => ({ ...section, items: section.items.filter((item) => ["inicio", "movimientos", "transferencia", "placezum", "normativa"].includes(item.id)) })).filter((section) => section.items.length)
     : NAV, [cuentaJunior]);
@@ -213,7 +214,7 @@ export default function App() {
         </nav>
       </aside>
 
-      <main className="main">
+      <main className={`main ${cuentaEmpresa ? "account-mode-company" : cuentaJunior ? "account-mode-junior" : "account-mode-personal"}`}>
         <header className="header">
           <div>
             <p className="eyebrow">{currentItem?.label || "Banco de La Placeta"}</p>

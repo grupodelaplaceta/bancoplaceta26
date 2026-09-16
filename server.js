@@ -217,10 +217,18 @@ app.get("/bff/inversiones", requireAuth, bff(async (req, res) => {
 
 app.get("/bff/nominas", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffGet(token, cuentaPath(req, "/api/web/nominas"));
+  const cuenta = String(req.query.cuenta || getCuenta(req) || "").trim();
+  let r = await bffGet(token, cuentaPath(req, "/api/web/nominas"));
+  // Compatibilidad con despliegues del API que aún no aceptan el contexto
+  // cuenta en la consulta. Nunca devolvemos el 405 opaco al panel.
+  if (r.status === 405 && cuenta) r = await bffGet(token, "/api/web/nominas");
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
   if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
-  return res.json(r.body);
+  const body = r.body || {};
+  if (!cuenta) return res.json(body);
+  const contratos = (body.contratos || []).filter((contrato) => contrato.companyAccountId === cuenta || contrato.accountId === cuenta);
+  const ids = new Set(contratos.map((contrato) => contrato.id));
+  return res.json({ ...body, contratos, resumenes: (body.resumenes || []).filter((resumen) => ids.has(resumen.contrato?.id || resumen.contractId)), periodos: (body.periodos || []).filter((periodo) => periodo.companyAccountId === cuenta || periodo.contractId && ids.has(periodo.contractId)) });
 }));
 
 app.get("/bff/tributos", requireAuth, bff(async (req, res) => {

@@ -2,7 +2,28 @@
 // httpOnly, así que estas llamadas son relativas al mismo origen y no
 // exponen ninguna credencial en el navegador.
 
+const GET_CACHE = new Map();
+const GET_INFLIGHT = new Map();
+const GET_CACHE_MS = 8000;
+
 async function request(path, options = {}) {
+  const method = String(options.method || "GET").toUpperCase();
+  if (method === "GET") {
+    const cached = GET_CACHE.get(path);
+    if (cached && cached.expiresAt > Date.now()) return cached.value;
+    if (GET_INFLIGHT.has(path)) return GET_INFLIGHT.get(path);
+    const pending = requestUncached(path, options).then((value) => {
+      GET_CACHE.set(path, { value, expiresAt: Date.now() + GET_CACHE_MS });
+      return value;
+    }).finally(() => GET_INFLIGHT.delete(path));
+    GET_INFLIGHT.set(path, pending);
+    return pending;
+  }
+  GET_CACHE.clear();
+  return requestUncached(path, options);
+}
+
+async function requestUncached(path, options = {}) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), options.timeoutMs || 12000);
   const { timeoutMs: _timeoutMs, signal: externalSignal, ...fetchOptions } = options;
