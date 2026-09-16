@@ -8,6 +8,8 @@ export default function Inversiones({ cuenta }) {
 
   useEffect(() => {
     let alive = true;
+    setData(null);
+    setErr(null);
     api
       .inversiones(cuenta?.id)
       .then((r) => alive && setData(r))
@@ -21,10 +23,15 @@ export default function Inversiones({ cuenta }) {
   const operaciones = data?.operaciones || [];
 
   return (
-    <div className="space-y-6">
-      <SectionTitle title="Inversiones" subtitle="Tu cartera de activos en la economía de la Placeta." />
+    <div className="workspace-page space-y-6">
+      <SectionTitle title="Inversiones" subtitle={`Cartera de ${cuenta?.displayName || "la cuenta seleccionada"}.`} />
 
-      <Card>
+      <div className="workspace-summary-grid">
+        <div className="workspace-summary workspace-summary-primary"><span>Posiciones</span><strong>{holdings.length}</strong><small>Activos en cartera</small></div>
+        <div className="workspace-summary"><span>Operaciones</span><strong>{operaciones.length}</strong><small>Movimientos de inversión</small></div>
+      </div>
+
+      <Card className="responsive-card">
         <SectionTitle title="Posiciones" className="mb-3" />
         {!data && !err ? (
           <Skeleton className="h-24 w-full" />
@@ -37,11 +44,11 @@ export default function Inversiones({ cuenta }) {
             {holdings.map((h) => (
               <li key={h.id} className="flex items-center justify-between gap-3 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-brand-dark">{h.name || h.asset || h.id}</p>
-                  <p className="text-xs text-brand-dark/50">{h.symbol || ""}</p>
+                  <p className="truncate text-sm font-semibold text-brand-dark">{h.assetName || h.name || h.asset || h.id}</p>
+                  <p className="text-xs text-brand-dark/50">{h.symbol || `${h.units ?? 0} unidades`}</p>
                 </div>
-                <span className="text-sm font-extrabold text-brand">
-                  {h.quantity != null ? formatPz(h.quantity) : "—"}
+                <span className="whitespace-nowrap text-right text-sm font-extrabold text-brand">
+                  {h.currentValuePz != null ? `${formatPz(h.currentValuePz)} Pz` : h.units != null ? `${formatPz(h.units)} uds.` : "—"}
                 </span>
               </li>
             ))}
@@ -60,11 +67,11 @@ export default function Inversiones({ cuenta }) {
             {operaciones.map((o) => (
               <li key={o.id} className="flex items-center justify-between gap-3 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-brand-dark">{o.kind || o.type || "Operación"}</p>
-                  <p className="text-xs text-brand-dark/50">{formatFecha(o.createdAt)}</p>
+                  <p className="truncate text-sm font-semibold text-brand-dark">{o.assetName || o.kind || o.type || "Operación"}</p>
+                  <p className="text-xs text-brand-dark/50">{formatFecha(o.createdAt)} · {o.settledAt ? "Liquidada" : "Pendiente"}</p>
                 </div>
-                <span className="text-sm font-extrabold text-brand">
-                  {o.amountPz != null ? formatPz(o.amountPz) + " Pz" : ""}
+                <span className="whitespace-nowrap text-right text-sm font-extrabold text-brand">
+                  {o.amountPz != null ? formatPz(o.amountPz) + " Pz" : "—"}
                 </span>
               </li>
             ))}

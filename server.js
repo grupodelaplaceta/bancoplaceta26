@@ -226,10 +226,23 @@ app.get("/bff/tributos", requireAuth, bff(async (req, res) => {
 
 app.get("/bff/facturacion", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffGet(token, cuentaPath(req, "/api/web/facturacion"));
+  const base = `/api/web/facturacion${req.query.mes ? `?mes=${encodeURIComponent(String(req.query.mes))}` : ""}`;
+  const r = await bffGet(token, cuentaPath(req, base));
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
   if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
+}));
+
+app.post("/bff/facturacion/pagar-iva", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const body = req.body || {};
+  const r = await bffPost(token, "/api/web/facturacion/pagar-iva", {
+    from: String(body.from || "").trim(),
+    mes: String(body.mes || "").trim(),
+    facturaIds: Array.isArray(body.facturaIds) ? body.facturaIds.map(String).filter(Boolean) : []
+  });
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  return res.status(r.ok ? 200 : upstreamStatus(r)).json(r.body);
 }));
 
 app.get("/bff/subvenciones", requireAuth, bff(async (req, res) => {
