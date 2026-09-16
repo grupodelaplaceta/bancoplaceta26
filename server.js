@@ -8,7 +8,7 @@ import { loginUrl, validateToken } from "./lib/placetaid.js";
 import { getToken, setTokenCookie, clearTokenCookie, getCuenta, setCuentaCookie } from "./lib/session.js";
 import { webGet, webPost, publicPaymentLink } from "./lib/bancoApi.js";
 import { cargarValoresBancarios } from "./lib/bolp.js";
-import { generarJustificanteDeclaracion, generarComprobanteTransferencia } from "./lib/pdfJustificante.js";
+import { generarJustificanteDeclaracion, generarComprobanteTransferencia, generarComprobanteNomina } from "./lib/pdfJustificante.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -188,6 +188,15 @@ app.get("/bff/movimientos", requireAuth, bff(async (req, res) => {
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
   if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
+}));
+
+app.get("/bff/nominas/periodos/:id/pdf", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const id = encodeURIComponent(String(req.params.id || ""));
+  const r = await bffGet(token, `/api/web/nominas/periodos/${id}/pdf-data`);
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!r.ok || !r.body?.periodo) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "nomina_no_encontrada" });
+  return generarComprobanteNomina(res, r.body);
 }));
 
 app.get("/bff/movimientos/:id/comprobante.pdf", requireAuth, bff(async (req, res) => {

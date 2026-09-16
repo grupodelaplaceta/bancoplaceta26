@@ -174,6 +174,7 @@ export default function Nominas({ cuenta }) {
                   <p className="text-sm font-semibold text-brand-dark">
                     {r.periodo || r.mes || r.id}
                   </p>
+                  {r.periodoDoc?.id && <a className="text-xs font-bold text-brand underline" href={`/bff/nominas/periodos/${encodeURIComponent(r.periodoDoc.id)}/pdf`}>Descargar PDF</a>}
                   <p className="text-xs text-brand-dark/50">
                     {r.contrato?.employeeDip || r.employeeDip || ""}
                   </p>
