@@ -82,6 +82,7 @@ export const api = {
   inversiones: (cuenta) => request(`/bff/inversiones?cuenta=${encodeURIComponent(cuenta || "")}`),
   nominas: (cuenta) => request(`/bff/nominas?cuenta=${encodeURIComponent(cuenta || "")}`),
   altaTrabajador: (payload) => request("/bff/nominas/trabajadores", { method: "POST", body: JSON.stringify(payload) }),
+  contactos: (cuenta) => request(`/bff/contactos?cuenta=${encodeURIComponent(cuenta || "")}`),
   tributos: (cuenta) => request(`/bff/tributos?cuenta=${encodeURIComponent(cuenta || "")}`),
   facturacion: (cuenta, mes) => request(`/bff/facturacion?cuenta=${encodeURIComponent(cuenta || "")}${mes ? `&mes=${encodeURIComponent(mes)}` : ""}`),
   facturacionPagar: (payload) => request("/bff/facturacion/pagar-iva", { method: "POST", body: JSON.stringify(payload) }),
