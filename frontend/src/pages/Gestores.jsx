@@ -5,6 +5,9 @@ import { api } from "@/lib/api";
 export default function Gestores({ cuenta }) {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
+  const [placetaId, setPlacetaId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -16,6 +19,22 @@ export default function Gestores({ cuenta }) {
       alive = false;
     };
   }, [cuenta?.id]);
+
+  const añadirCotitular = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setMessage(null);
+    try {
+      await api.añadirCotitular({ accountId: cuenta?.id, placetaId });
+      setPlacetaId("");
+      setData((await api.gestores(cuenta?.id)).gestores || []);
+      setMessage("Cotitular añadido correctamente.");
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="workspace-page space-y-6">
@@ -29,6 +48,12 @@ export default function Gestores({ cuenta }) {
       </Card>
 
       <Card>
+        <SectionTitle title="Añadir cotitular" subtitle="Introduce su DIP de PlacetaID. La cuenta seguirá bajo tu control." className="mb-3" />
+        <form onSubmit={añadirCotitular} className="mb-4 flex flex-wrap gap-2">
+          <input required value={placetaId} onChange={(event) => setPlacetaId(event.target.value.toUpperCase())} placeholder="DIP del cotitular" className="min-w-0 flex-1 rounded-xl border border-brand/15 px-3 py-2 text-sm" />
+          <button disabled={saving || !cuenta?.id} type="submit" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Añadiendo…" : "Añadir"}</button>
+        </form>
+        {message && <p className="mb-4 text-sm text-brand-dark/70">{message}</p>}
         {!data && !err ? (
           <Skeleton className="h-24 w-full" />
         ) : err ? (

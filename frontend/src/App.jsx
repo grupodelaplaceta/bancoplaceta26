@@ -118,9 +118,15 @@ export default function App() {
   const tipoCuenta = String(cuenta?.type || "").toLowerCase();
   const cuentaJunior = tipoCuenta === "junior" || tipoCuenta.includes("juvenil");
   const cuentaEmpresa = ["business", "empresa", "organismo", "state"].includes(tipoCuenta);
-  const navVisible = useMemo(() => cuentaJunior
-    ? NAV.map((section) => ({ ...section, items: section.items.filter((item) => ["inicio", "movimientos", "transferencia", "placezum", "normativa"].includes(item.id)) })).filter((section) => section.items.length)
-    : NAV, [cuentaJunior]);
+  const cuentaInversion = ["investment", "inversion"].includes(tipoCuenta);
+  const inversionesPermitidas = cuentaInversion || cuentaEmpresa || Boolean(cuenta?.eip);
+  const navVisible = useMemo(() => {
+    let visible = cuentaJunior
+      ? NAV.map((section) => ({ ...section, items: section.items.filter((item) => ["inicio", "movimientos", "transferencia", "placezum", "normativa"].includes(item.id)) })).filter((section) => section.items.length)
+      : NAV;
+    if (!inversionesPermitidas) visible = visible.map((section) => ({ ...section, items: section.items.filter((item) => item.id !== "inversiones") })).filter((section) => section.items.length);
+    return visible;
+  }, [cuentaJunior, inversionesPermitidas]);
   const currentItem = navVisible.flatMap((section) => section.items).find((item) => item.id === route);
   const activeRoute = currentItem ? route : "inicio";
   const Page = PAGES[activeRoute] || Dashboard;

@@ -30,10 +30,15 @@ export default function Tributos({ cuenta }) {
         subtitle="Tus declaraciones tributarias (IRM/IGF) y las de tus empresas."
       />
 
+      {data?.estimacion && <Card className="tax-estimator-card">
+        <div className="tax-estimator-heading"><div><p className="eyebrow">Cálculo real</p><h3>Estimación del periodo {data.estimacion.periodo}</h3><p>Calculada con saldos y movimientos liquidados; no modifica tu declaración.</p></div><span aria-hidden="true">✓</span></div>
+        <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4"><div><span className="text-brand-dark/50">IRM</span><strong className="block">{formatPz(data.estimacion.cuotaIrm)} Pz</strong></div><div><span className="text-brand-dark/50">IGF</span><strong className="block">{formatPz(data.estimacion.cuotaIgf)} Pz</strong></div><div><span className="text-brand-dark/50">IVA repercutido</span><strong className="block">{formatPz(data.estimacion.ivaRepercutido)} Pz</strong></div><div><span className="text-brand-dark/50">Total estimado</span><strong className="block text-brand">{formatPz(data.estimacion.total)} Pz</strong></div></div>
+      </Card>}
+
       <Card className="tax-estimator-card">
         <div className="tax-estimator-heading"><div><p className="eyebrow">Simulador orientativo</p><h3>Estimación de tributo</h3><p>Calcula una referencia sin modificar declaraciones ni saldos.</p></div><span aria-hidden="true">≈</span></div>
         <div className="tax-estimator-fields"><label>Base estimada (Pz)<input type="number" min="0" inputMode="decimal" value={baseSimulada} onChange={(event) => setBaseSimulada(event.target.value)} placeholder="0" /></label><label>Tipo orientativo<input type="number" min="0" max="100" step="0.1" value={tipoSimulado} onChange={(event) => setTipoSimulado(event.target.value)} /></label></div>
-        <div className="tax-estimator-result"><span>Resultado aproximado</span><strong>{formatPz((Number(baseSimulada) || 0) * (Number(tipoSimulado) || 0) / 100)} Pz</strong><small>No es una liquidación oficial. Consulta el resultado emitido por RSP.</small></div>
+        <div className="tax-estimator-result"><span>Simulación manual</span><strong>{formatPz((Number(baseSimulada) || 0) * (Number(tipoSimulado) || 0) / 100)} Pz</strong><small>Simulación manual; el cálculo real del periodo aparece arriba.</small></div>
       </Card>
 
       <Card>

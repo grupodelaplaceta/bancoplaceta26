@@ -79,6 +79,7 @@ export const api = {
     request(`/bff/movimientos?cuenta=${encodeURIComponent(cuenta || "")}&limit=${limit}`),
   tarjetas: (cuenta) => request(`/bff/tarjetas?cuenta=${encodeURIComponent(cuenta || "")}`),
   gestores: (cuenta) => request(`/bff/gestores?cuenta=${encodeURIComponent(cuenta || "")}`),
+  añadirCotitular: (payload) => request("/bff/gestores", { method: "POST", body: JSON.stringify(payload) }),
   inversiones: (cuenta) => request(`/bff/inversiones?cuenta=${encodeURIComponent(cuenta || "")}`),
   nominas: (cuenta) => request(`/bff/nominas?cuenta=${encodeURIComponent(cuenta || "")}`),
   buscarTrabajador: (dip) => request(`/bff/nominas/trabajadores/buscar?dip=${encodeURIComponent(dip || "")}`),

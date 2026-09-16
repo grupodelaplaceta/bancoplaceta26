@@ -38,7 +38,7 @@ export default function Inversiones({ cuenta }) {
         ) : err ? (
           <EmptyState title="No se pudieron cargar las inversiones" hint={err} />
         ) : holdings.length === 0 ? (
-          <EmptyState title="Sin posiciones" hint="Todavía no tienes activos en cartera." />
+          <EmptyState title={data?.disponible === false ? "Módulo no disponible para esta cuenta" : "Sin posiciones"} hint={data?.disponible === false ? "Las inversiones solo aparecen en cuentas de inversión o de empresa." : "Todavía no tienes activos en cartera."} />
         ) : (
           <ul className="divide-y divide-brand/5">
             {holdings.map((h) => (

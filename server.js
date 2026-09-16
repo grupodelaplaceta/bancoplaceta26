@@ -240,6 +240,13 @@ app.get("/bff/tarjetas", requireAuth, bff(async (req, res) => {
   return res.json(r.body);
 }));
 
+app.post("/bff/gestores", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffPost(token, "/api/web/gestores", req.body || {});
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  return res.status(r.ok ? r.status : upstreamStatus(r)).json(r.body);
+}));
+
 app.get("/bff/gestores", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
   const r = await bffGet(token, cuentaPath(req, "/api/web/gestores"));

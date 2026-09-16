@@ -6,7 +6,8 @@
   "description": "Banco de La Placeta — banca en línea ciudadana (igualito a la app). Solo consume la API real backend-banco con Bearer PlacetaID.",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "build": "npm --prefix frontend run build"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
