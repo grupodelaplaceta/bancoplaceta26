@@ -37,7 +37,8 @@ function publicOrigin(req = null) {
 
 function safeReturnTo(value) {
   const candidate = String(value || "").trim();
-  return candidate.startsWith("/pagar/") && !candidate.startsWith("//") ? candidate : "/";
+  const allowed = candidate === "/panel" || candidate.startsWith("/pagar/");
+  return allowed && !candidate.startsWith("//") ? candidate : "/panel";
 }
 
 const APP_URL = publicOrigin();
@@ -105,7 +106,7 @@ app.get("/login", async (req, res) => {
   const token = getToken(req);
   if (token) {
     const validated = await validateToken(token);
-    if (validated) return res.redirect("/");
+    if (validated) return res.redirect("/panel");
     // Una cookie puede sobrevivir a la caducidad del token. Limpiarla aquí
     // evita el bucle /login → / → /login en navegadores con sesiones antiguas.
     clearTokenCookie(res);
@@ -270,6 +271,31 @@ app.post("/bff/apertura", requireAuth, bff(async (req, res) => {
   });
   if (!solicitud.ok) return res.status(upstreamStatus(solicitud)).json({ error: solicitud.body?.error || "no_se_pudo_iniciar_la_firma", detalle: solicitud.body });
   return res.status(202).json({ ok: true, ...solicitud.body, promocion: politica.promocion });
+}));
+
+app.post("/bff/productos/solicitar", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const body = req.body || {};
+  const productType = String(body.productType || '').trim().toLowerCase();
+  const accountId = String(body.accountId || '').trim();
+  const catalogo = new Set(['placetapay-debito', 'cuenta-ahorro', 'fondo-inversion']);
+  if (!catalogo.has(productType) || !accountId) return res.status(400).json({ error: 'producto_o_cuenta_invalidos' });
+
+  const me = await bffGet(token, "/api/web/cuenta");
+  if (me.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!me.ok) return res.status(upstreamStatus(me)).json({ error: me.body?.error || "banco_no_disponible" });
+  const cuenta = (me.body?.cuentas || []).find((item) => item.id === accountId);
+  if (!cuenta) return res.status(403).json({ error: 'cuenta_no_pertenece_al_titular' });
+  if (String(cuenta.type || '').toLowerCase() === 'junior') return res.status(409).json({ error: 'producto_no_disponible_para_junior' });
+
+  const solicitud = await bffTrustedPost(token, "/api/document-actions", {
+    action: "solicitar-contrato-producto",
+    dip: String(me.body?.usuario?.dip || '').trim().toUpperCase(),
+    nombre: String(me.body?.usuario?.displayName || me.body?.usuario?.dip || 'Titular').trim(),
+    datos: { productType, accountId, accountName: cuenta.displayName, fechaSolicitud: new Date().toISOString() }
+  });
+  if (!solicitud.ok) return res.status(upstreamStatus(solicitud)).json({ error: solicitud.body?.error || 'no_se pudo_iniciar_la_firma', detalle: solicitud.body });
+  return res.status(202).json({ ok: true, ...solicitud.body });
 }));
 
 app.get("/bff/movimientos", requireAuth, bff(async (req, res) => {
@@ -515,25 +541,12 @@ app.get("/pagar/:id", async (req, res) => {
 // ── Páginas protegidas (server-side render, solo datos del titular) ─────────
 app.get("/", async (req, res, next) => {
   const token = getToken(req);
-  if (!token) return res.render("public-home", { layout: false });
-  const r = await webGet(token, "/api/web/cuenta");
-  if (r.status === 401) {
+  if (token) {
+    const sessionUser = await validateToken(token);
+    if (sessionUser) return res.redirect("/panel");
     clearTokenCookie(res);
-    return res.redirect("/login?error=sesion_expirada");
   }
-  // Un DIP de PlacetaID sin registro bancario se autorregistra (no es un error).
-  if (r.status === 404 && r.body?.error === "titular_no_encontrado") return res.redirect("/registro");
-  if (!r.ok) return res.status(502).render("error", { layout: false, mensaje: "No se pudo conectar con el banco en este momento." });
-  // Últimos movimientos para el resumen del inicio (igual que la app)
-  const cuentaActiva = getCuenta(req) || "";
-  const mv = await webGet(token, "/api/web/movimientos?limit=8" + (cuentaActiva ? "&cuenta=" + encodeURIComponent(cuentaActiva) : ""));
-  res.render("dashboard", {
-    usuario: r.body.usuario,
-    cuentas: r.body.cuentas,
-    movimientos: (mv.ok && mv.body.movimientos) || [],
-    alta: req.query.alta === "1",
-    active: "inicio"
-  });
+  res.render("public-home", { layout: false, sessionUser: null });
 });
 
 

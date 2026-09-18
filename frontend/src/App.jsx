@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Icon from "@/components/Icon";
 import NotificationBell from "@/components/NotificationBell";
+import ProductLauncher from "@/components/ProductLauncher";
 import { Spinner } from "@/components/ui";
 import { api } from "@/lib/api";
 
@@ -251,6 +252,7 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
       </main>
+      <ProductLauncher cuenta={cuenta} />
     </div>
   );
 }

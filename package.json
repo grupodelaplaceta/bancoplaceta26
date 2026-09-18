@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "build": "npm --prefix frontend run build"
+    "build": "npm ci --prefix frontend && npm --prefix frontend run build"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

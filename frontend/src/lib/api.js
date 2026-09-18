@@ -76,6 +76,7 @@ export const api = {
   me: () => request("/bff/me"),
   cuenta: () => request("/bff/me"),
   solicitarApertura: (payload) => request("/bff/apertura", { method: "POST", body: JSON.stringify(payload) }),
+  solicitarProducto: (payload) => request("/bff/productos/solicitar", { method: "POST", body: JSON.stringify(payload) }),
   movimientos: (cuenta, limit = 100) =>
     request(`/bff/movimientos?cuenta=${encodeURIComponent(cuenta || "")}&limit=${limit}`),
   tarjetas: (cuenta) => request(`/bff/tarjetas?cuenta=${encodeURIComponent(cuenta || "")}`),
