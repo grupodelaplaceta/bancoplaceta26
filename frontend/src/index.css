@@ -173,6 +173,48 @@ select {
   margin-bottom: 22px;
 }
 
+.product-launcher-cluster {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 25;
+  pointer-events: none;
+}
+
+.product-launcher-action {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px 9px 10px;
+  border: 1px solid rgba(50, 4, 217, .12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .96);
+  color: var(--gdlp-primary);
+  font: 700 12px "Montserrat Alternates", sans-serif;
+  box-shadow: 0 12px 20px rgba(21, 2, 89, .10);
+  opacity: 0;
+  transform: translate(0, 0) scale(.95);
+  transition: opacity .2s ease, transform .2s ease;
+  pointer-events: none;
+}
+
+.product-launcher-cluster.is-expanded .product-launcher-action {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.product-launcher-action-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--gdlp-surface-alt);
+}
+
 .product-launcher {
   position: fixed;
   right: 28px;
@@ -221,6 +263,12 @@ select {
 .product-detail > p { margin: 8px 0 18px; color: var(--gdlp-muted); font-size: 14px; line-height: 1.6; }
 .product-characteristics { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
 .product-characteristic { display: inline-flex; align-items: center; padding: 7px 10px; border-radius: 999px; background: #f4f1ff; color: var(--gdlp-primary); font-size: 11px; font-weight: 700; }
+.product-virtual-form { display: grid; gap: 14px; margin: 12px 0 20px; }
+.product-virtual-form label { display: grid; gap: 8px; font-size: 12px; font-weight: 700; color: var(--gdlp-muted); }
+.product-virtual-form input { min-height: 42px; border: 1px solid var(--gdlp-border); border-radius: 12px; padding: 0 12px; background: #fff; color: var(--gdlp-text); }
+.product-virtual-preview { display: grid; gap: 6px; padding: 12px; border: 1px solid var(--gdlp-border); border-radius: 12px; background: #faf8ff; }
+.product-virtual-preview strong { font-size: 12px; color: var(--gdlp-primary); }
+.product-virtual-preview code { overflow-wrap: anywhere; color: var(--gdlp-muted); font-size: 11px; line-height: 1.5; }
 .product-detail dl { display: grid; gap: 10px; margin: 0 0 20px; }
 .product-detail dl div { display: flex; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--gdlp-border); padding-bottom: 10px; font-size: 13px; }
 .product-detail dt { color: var(--gdlp-muted); }

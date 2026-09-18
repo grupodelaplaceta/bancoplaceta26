@@ -74,7 +74,7 @@ const CARD_OPTIONS = [
     detail: "Tarjeta digital y de uso habitual con control de límites, gasto y seguridad desde el banco.",
     icon: "card",
     action: "Solicitar tarjeta",
-    image: "/img/vitualcard.jpg",
+    image: "/img/tarjta-debito-26.jpg",
     characteristics: ["Uso directo desde el saldo", "Límites de contactless y semanal", "Control desde el panel del cliente"],
   },
   {
@@ -85,7 +85,7 @@ const CARD_OPTIONS = [
     detail: "Diseño compatible con la imagen ya usada en la app para ofrecer la tarjeta con identidad visual del banco.",
     icon: "card",
     action: "Solicitar tarjeta física",
-    image: "/img/promocard.jpg",
+    image: "/img/tarjta-debito-26.jpg",
     characteristics: ["Diseño visual del banco", "Útil para pagos físicos y gestión", "Emisión e identidad corporativa"],
   },
 ];
@@ -94,9 +94,30 @@ const ALL_OPTIONS = [...ACCOUNT_OPTIONS, ...CARD_OPTIONS];
 
 export default function ProductLauncher({ cuenta }) {
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState(null);
   const [working, setWorking] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [virtualName, setVirtualName] = useState("Curso de onboarding corporativo");
+  const [virtualPrice, setVirtualPrice] = useState("199");
+  const [virtualSlug, setVirtualSlug] = useState("curso-onboarding-corporativo");
+
+  const quickActions = [
+    { id: "alta-producto", label: "Alta producto", icon: "plus", action: () => { setExpanded(false); setSelected(ACCOUNT_OPTIONS[0]); setOpen(true); setFeedback(null); } },
+    { id: "nueva-factura", label: "Nueva factura", icon: "receipt", action: () => { setExpanded(false); window.location.hash = "facturacion"; } },
+    { id: "producto-virtual", label: "Crear un producto virtual", icon: "chip", action: () => { setExpanded(false); setSelected({ ...ACCOUNT_OPTIONS[0], title: "Producto virtual", summary: "Vende tu producto desde una URL o pasarela insertable.", detail: "Empresas y proyectos pueden crear productos virtuales, compartir una URL de venta y recibir la confirmación del pago desde la web.", action: "Preparar producto virtual", characteristics: ["URL de venta", "Pasarela insertable", "Respuesta del pago"], kind: "virtual" }); setOpen(true); setFeedback(null); } },
+    { id: "gestores", label: "Gestores", icon: "users", action: () => { setExpanded(false); window.location.hash = "gestores"; } },
+    { id: "transferir", label: "Transferir", icon: "send", action: () => { setExpanded(false); window.location.hash = "transferencia"; } },
+  ];
+
+  const buildVirtualProduct = () => {
+    const safeName = String(virtualName || "Producto virtual").trim() || "Producto virtual";
+    const safePrice = Number(virtualPrice) || 0;
+    const slug = String(virtualSlug || safeName).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "producto-virtual";
+    const publicUrl = `${window.location.origin}/pagar/${encodeURIComponent(slug)}?source=empresa`;
+    const embedCode = `<iframe src="${publicUrl}" title="${safeName}" style="width:100%; min-height:720px; border:none; border-radius:16px;"></iframe>`;
+    return { safeName, safePrice, slug, publicUrl, embedCode };
+  };
 
   async function solicitar() {
     if (!selected || !cuenta) return;
@@ -116,6 +137,15 @@ export default function ProductLauncher({ cuenta }) {
         return;
       }
 
+      if (selected.kind === "virtual") {
+        const product = buildVirtualProduct();
+        setFeedback({
+          type: "success",
+          text: `Producto creado: ${product.safeName} (${product.safePrice} Pz). URL pública: ${product.publicUrl}`
+        });
+        return;
+      }
+
       const result = await api.solicitarProducto({ productType: selected.id, accountId: cuenta.id });
       setFeedback({ type: "success", text: result.message || "Solicitud enviada. Firma el contrato desde PlacetaID Móvil." });
     } catch (error) {
@@ -127,7 +157,22 @@ export default function ProductLauncher({ cuenta }) {
 
   return (
     <>
-      <button type="button" className="product-launcher" aria-label="Dar de alta un producto" onClick={() => { setOpen(true); setFeedback(null); }}>
+      <div className={`product-launcher-cluster ${expanded ? "is-expanded" : ""}`} aria-live="polite">
+        {quickActions.map((action, index) => (
+          <button
+            key={action.id}
+            type="button"
+            className="product-launcher-action"
+            style={{ transform: `translate(${Math.cos((index / quickActions.length) * Math.PI * 2 - Math.PI / 2) * 88}px, ${Math.sin((index / quickActions.length) * Math.PI * 2 - Math.PI / 2) * 88}px)` }}
+            onClick={action.action}
+          >
+            <span className="product-launcher-action-icon"><Icon name={action.icon} size={18} /></span>
+            <span>{action.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <button type="button" className="product-launcher" aria-label="Dar de alta un producto" onClick={() => { setExpanded((value) => !value); setOpen(false); setFeedback(null); }}>
         <Icon name="plus" size={24} />
       </button>
       {open && (
@@ -186,11 +231,36 @@ export default function ProductLauncher({ cuenta }) {
                 <h3>{selected.title}</h3>
                 <p>{selected.detail}</p>
 
-                <div className="product-characteristics">
-                  {selected.characteristics.map((item) => (
-                    <span key={item} className="product-characteristic">{item}</span>
-                  ))}
-                </div>
+                {selected.kind === "virtual" ? (
+                  <div className="product-virtual-form">
+                    <label>
+                      <span>Nombre del producto</span>
+                      <input value={virtualName} onChange={(event) => setVirtualName(event.target.value)} />
+                    </label>
+                    <label>
+                      <span>Precio (Pz)</span>
+                      <input type="number" min="1" value={virtualPrice} onChange={(event) => setVirtualPrice(event.target.value)} />
+                    </label>
+                    <label>
+                      <span>Slug de la URL</span>
+                      <input value={virtualSlug} onChange={(event) => setVirtualSlug(event.target.value)} />
+                    </label>
+                    <div className="product-virtual-preview">
+                      <strong>URL pública</strong>
+                      <code>{buildVirtualProduct().publicUrl}</code>
+                    </div>
+                    <div className="product-virtual-preview">
+                      <strong>Pasarela insertable</strong>
+                      <code>{buildVirtualProduct().embedCode}</code>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="product-characteristics">
+                    {selected.characteristics.map((item) => (
+                      <span key={item} className="product-characteristic">{item}</span>
+                    ))}
+                  </div>
+                )}
 
                 <dl>
                   <div><dt>Cuenta</dt><dd>{cuenta?.displayName || cuenta?.id || "Cuenta activa"}</dd></div>

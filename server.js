@@ -539,15 +539,20 @@ app.get("/pagar/:id", async (req, res) => {
   return res.render("payment-link", { link: result.body.link, signature, error: null });
 });
 
-// ── Páginas protegidas (server-side render, solo datos del titular) ─────────
+// ── Página pública principal ────────────────────────────────────────────────
+// La entrada principal del banco debe permanecer pública; el panel protegido
+// queda en /panel para los usuarios ya autenticados.
 app.get("/", async (req, res, next) => {
   const token = getToken(req);
   if (token) {
     const sessionUser = await validateToken(token);
-    if (sessionUser) return res.redirect("/panel");
+    if (sessionUser) {
+      // Se mantiene la sesión pero la web pública sigue siendo la portada principal.
+      return res.render("public-home", { layout: false, sessionUser });
+    }
     clearTokenCookie(res);
   }
-  res.render("public-home", { layout: false, sessionUser: null });
+  return res.render("public-home", { layout: false, sessionUser: null });
 });
 
 

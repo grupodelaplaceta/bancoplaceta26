@@ -41,6 +41,12 @@ export default function Placezum({ cuenta, cuentas }) {
   const esEmpresa = ["business", "empresa", "organismo", "state"].includes(String(cuenta?.type || "").toLowerCase());
   const nombreServicio = esEmpresa ? "PlaceZUM Empresa" : "PlaceZUM";
 
+  const resumenEmpresa = esEmpresa ? {
+    label: "Cobros y pagos para proyecto/empresa",
+    description: "Genera un enlace de cobro interno, comparte una pasarela insertable o recibe pagos desde clientes con respuesta del pago confirmada.",
+    options: ["Cobro de servicios", "URL de venta", "Pasarela embebida", "Respuesta del pago"]
+  } : null;
+
   const generar = async () => {
     setLoading(true);
     setError(null);
@@ -107,14 +113,26 @@ export default function Placezum({ cuenta, cuentas }) {
 
       {tab === "cobrar" ? (
         <Card>
-          <p className="text-sm text-brand-dark/60">
-            Genera un código que expira en 2 minutos. Quien lo introduzca podrá enviarte
-            Placetas directamente.
-          </p>
+          {resumenEmpresa ? (
+            <div className="space-y-4">
+              <p className="text-sm font-bold text-brand-dark">{resumenEmpresa.label}</p>
+              <p className="text-sm text-brand-dark/60">{resumenEmpresa.description}</p>
+              <div className="flex flex-wrap gap-2">
+                {resumenEmpresa.options.map((item) => (
+                  <Badge key={item} tone="brand">{item}</Badge>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-brand-dark/60">
+              Genera un código que expira en 2 minutos. Quien lo introduzca podrá enviarte
+              Placetas directamente.
+            </p>
+          )}
 
           {!codigo ? (
             <Button onClick={generar} loading={loading} className="mt-5">
-              Generar código
+              {esEmpresa ? "Generar enlace de cobro" : "Generar código"}
             </Button>
           ) : (
             <AnimatePresence>
@@ -124,20 +142,28 @@ export default function Placezum({ cuenta, cuentas }) {
                 className="mt-5 flex flex-col items-center gap-4 rounded-2xl bg-brand/5 p-6"
               >
                 <p className="text-xs font-bold uppercase tracking-widest text-brand-dark/50">
-                  Tu código {nombreServicio}
+                  Tu {esEmpresa ? "enlace de cobro" : "código"} {nombreServicio}
                 </p>
-                <div className="flex gap-2">
-                  {String(codigo)
-                    .split("")
-                    .map((d, i) => (
-                      <span
-                        key={i}
-                        className="grid h-16 w-12 place-items-center rounded-xl bg-white text-2xl font-extrabold text-brand-dark shadow-sm"
-                      >
-                        {d}
-                      </span>
-                    ))}
-                </div>
+                {esEmpresa ? (
+                  <div className="w-full rounded-2xl border border-brand/15 bg-white p-4 text-left">
+                    <p className="text-xs uppercase tracking-[0.12em] text-brand-dark/50">URL pública</p>
+                    <p className="mt-2 break-all text-sm font-bold text-brand-dark">{window.location.origin}/pagar/{encodeURIComponent(String(codigo || "empresa"))}?source=empresa</p>
+                    <p className="mt-3 text-xs text-brand-dark/55">Pasarela embebida disponible para cualquier web y con respuesta del pago enviada al backend.</p>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    {String(codigo)
+                      .split("")
+                      .map((d, i) => (
+                        <span
+                          key={i}
+                          className="grid h-16 w-12 place-items-center rounded-xl bg-white text-2xl font-extrabold text-brand-dark shadow-sm"
+                        >
+                          {d}
+                        </span>
+                      ))}
+                  </div>
+                )}
                 <p className="text-sm text-brand-dark/60">
                   Expira en{" "}
                   <span className="font-bold text-brand">{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</span>

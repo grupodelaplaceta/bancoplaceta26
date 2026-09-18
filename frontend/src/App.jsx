@@ -23,7 +23,7 @@ const Cumplimiento = lazy(() => import("@/pages/Cumplimiento"));
 const Normativa = lazy(() => import("@/pages/Normativa"));
 const AperturaCuenta = lazy(() => import("@/pages/AperturaCuenta"));
 
-const NAV = [
+const BASE_NAV = [
   { group: "Operar", items: [
     { id: "inicio", label: "Inicio", icon: "home" },
     { id: "movimientos", label: "Movimientos", icon: "activity" },
@@ -31,13 +31,11 @@ const NAV = [
     { id: "placezum", label: "PlaceZUM", icon: "zum" },
   ]},
   { group: "Cuentas y medios", items: [
-    { id: "apertura", label: "Abrir cuenta", icon: "plus" },
     { id: "tarjetas", label: "Tarjetas", icon: "card" },
     { id: "gestores", label: "Gestores", icon: "users" },
     { id: "inversiones", label: "Inversiones", icon: "chart" },
   ]},
   { group: "Fiscal y empresa", items: [
-
     { id: "tributos", label: "Tributos", icon: "receipt" },
     { id: "facturacion", label: "Facturación", icon: "building" },
     { id: "nominas", label: "Nóminas", icon: "receipt" },
@@ -48,6 +46,14 @@ const NAV = [
     { id: "normativa", label: "Normativa", icon: "book" },
   ]},
 ];
+
+function formatAccountIdentity(cuenta) {
+  if (!cuenta) return "Cuenta activa";
+  const label = [cuenta.displayName, cuenta.iban, cuenta.eip, cuenta.dip, cuenta.titularDip]
+    .map((value) => String(value || "").trim())
+    .find(Boolean);
+  return label || cuenta.id || "Cuenta activa";
+}
 
 const PAGES = {
   inicio: Dashboard,
@@ -125,12 +131,31 @@ export default function App() {
   const cuentaInversion = ["investment", "inversion"].includes(tipoCuenta);
   const inversionesPermitidas = cuentaInversion || cuentaEmpresa || Boolean(cuenta?.eip);
   const navVisible = useMemo(() => {
-    let visible = cuentaJunior
-      ? NAV.map((section) => ({ ...section, items: section.items.filter((item) => ["inicio", "movimientos", "transferencia", "placezum", "normativa"].includes(item.id)) })).filter((section) => section.items.length)
-      : NAV;
-    if (!inversionesPermitidas) visible = visible.map((section) => ({ ...section, items: section.items.filter((item) => item.id !== "inversiones") })).filter((section) => section.items.length);
+    let visible = BASE_NAV;
+
+    if (cuentaJunior) {
+      visible = BASE_NAV.map((section) => ({
+        ...section,
+        items: section.items.filter((item) => ["inicio", "movimientos", "transferencia", "placezum", "normativa"].includes(item.id))
+      })).filter((section) => section.items.length);
+    }
+
+    if (cuentaEmpresa) {
+      visible = BASE_NAV.map((section) => ({
+        ...section,
+        items: section.items.filter((item) => !["apertura"].includes(item.id))
+      })).filter((section) => section.items.length);
+    }
+
+    if (!inversionesPermitidas) {
+      visible = visible.map((section) => ({
+        ...section,
+        items: section.items.filter((item) => item.id !== "inversiones")
+      })).filter((section) => section.items.length);
+    }
+
     return visible;
-  }, [cuentaJunior, inversionesPermitidas]);
+  }, [cuentaJunior, cuentaEmpresa, inversionesPermitidas]);
   const currentItem = navVisible.flatMap((section) => section.items).find((item) => item.id === route);
   const activeRoute = currentItem ? route : "inicio";
   const Page = PAGES[activeRoute] || Dashboard;
@@ -194,7 +219,7 @@ export default function App() {
           >
             {(me.cuentas || []).map((c) => (
               <option key={c.id} value={c.id}>
-                {c.displayName} · {c.id}
+                {formatAccountIdentity(c)}
               </option>
             ))}
           </select>
@@ -232,7 +257,7 @@ export default function App() {
               Hola, {me.usuario?.displayName?.split(" ")[0] || "titular"} 👋
             </h1>
             <p className="text-sm text-brand-dark/55">
-              {cuenta?.displayName || "Cuenta"} · {cuenta?.id || "—"}
+              {formatAccountIdentity(cuenta)}
             </p>
           </div>
           <NotificationBell />
