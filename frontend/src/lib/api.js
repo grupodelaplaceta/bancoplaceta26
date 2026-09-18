@@ -8,9 +8,17 @@ const GET_CACHE_MS = 8000;
 const AUTH_REDIRECT_COOLDOWN_MS = 6000;
 let lastAuthRedirectAt = 0;
 
+function isDocumentContext() {
+  const pathname = window.location.pathname || "/";
+  const isPdfPath = /\/[^/]+\.pdf(?:$|[?#])|\.pdf(?:$|[?#])/i.test(pathname);
+  const isPdfLikeRoute = /\/(comprobante|pdf|documento|descarga|download)(?:$|[/?#])/i.test(pathname);
+  return isPdfPath || isPdfLikeRoute;
+}
+
 function triggerAuthRedirect() {
   const pathname = window.location.pathname || "/";
   if (pathname === "/login" || pathname === "/auth/callback") return;
+  if (isDocumentContext()) return;
   const now = Date.now();
   if (now - lastAuthRedirectAt < AUTH_REDIRECT_COOLDOWN_MS) return;
   const target = `${pathname}${window.location.search}${window.location.hash}`;
