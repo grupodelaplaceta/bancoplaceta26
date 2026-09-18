@@ -24,13 +24,16 @@ export default function Dashboard({ cuenta }) {
 
   const saldo = Number(cuenta?.balancePz) || 0;
   const tipo = String(cuenta?.type || '').toLowerCase();
+  const esAhorro = tipo === 'savings' || tipo === 'ahorro';
   const esEmpresa = tipo === 'business' || tipo === 'empresa' || tipo === 'organismo';
   const esJunior = tipo === 'junior' || tipo.includes('juvenil');
   const perfil = esJunior
     ? { nombre: 'Cuenta Placeta Junior', descripcion: 'Operativa supervisada para menores de 16 años.', acciones: [['PlaceZUM', '#placezum', 'zum'], ['Movimientos', '#movimientos', 'activity'], ['Normativa', '#normativa', 'book']] }
     : esEmpresa
       ? { nombre: 'Cuenta de empresa', descripcion: 'Herramientas para tesorería, facturación y obligaciones del proyecto.', acciones: [['Facturación', '#facturacion', 'receipt'], ['Tributos', '#tributos', 'building'], ['Documentos', '#normativa', 'book']] }
-      : { nombre: 'Cuenta personal', descripcion: 'Gestiona tus Placetas, pagos y documentación desde un único espacio.', acciones: [['Enviar Placetas', '#transferencia', 'send'], ['Recargar', '#transferencia', 'plus'], ['Pagar servicios', '#placezum', 'receipt'], ['Proyectos', '#inversiones', 'briefcase']] };
+      : esAhorro
+        ? { nombre: 'Cuenta de ahorro', descripcion: 'Rendimiento directo diario del 0,02 % desde Banco de La Placeta.', acciones: [['Transferir', '#transferencia', 'send'], ['Ver movimientos', '#movimientos', 'activity'], ['Ver tarjetas', '#tarjetas', 'card'], ['Inversiones', '#inversiones', 'briefcase']] }
+        : { nombre: 'Cuenta personal', descripcion: 'Gestiona tus Placetas, pagos y documentación desde un único espacio.', acciones: [['Enviar Placetas', '#transferencia', 'send'], ['Recargar', '#transferencia', 'plus'], ['Pagar servicios', '#placezum', 'receipt'], ['Proyectos', '#inversiones', 'briefcase']] };
 
   return (
     <div className="space-y-6">

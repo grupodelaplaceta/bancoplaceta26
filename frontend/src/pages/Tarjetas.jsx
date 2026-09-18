@@ -34,24 +34,36 @@ export default function Tarjetas({ cuenta }) {
         ) : cards.length === 0 ? (
           <EmptyState title="Sin tarjetas" hint="No tienes tarjetas digitales en esta cuenta." />
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid gap-4 md:grid-cols-2">
             {cards.map((c) => (
               <li
                 key={c.id}
-                className="rounded-2xl bg-gradient-to-br from-brand-dark to-brand p-5 text-white"
+                className="rounded-3xl border border-brand/10 bg-gradient-to-br from-[#150259] via-[#2a0d8a] to-[#3204D9] p-5 text-white shadow-[0_18px_38px_rgba(21,2,89,0.2)]"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs uppercase tracking-widest text-white/60">Banco de La Placeta</p>
-                    <p className="mt-3 font-mono text-lg font-semibold tracking-wider">{c.cardNumber}</p>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/65">Banco de La Placeta</p>
+                    <p className="mt-4 font-mono text-xl font-bold tracking-[0.22em]">{c.cardNumber || "••••"}</p>
                   </div>
                   <Badge tone={c.frozen ? "rose" : "green"}>
                     {c.frozen ? "Congelada" : "Activa"}
                   </Badge>
                 </div>
-                <div className="mt-4 flex items-center justify-between text-sm text-white/80">
-                  <span>{c.alias || "Tarjeta"}</span>
-                  <span>{c.tier}</span>
+
+                <div className="mt-8 flex items-end justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-white/60">Alias</p>
+                    <p className="mt-1 truncate text-sm font-semibold text-white">{c.alias || "Tarjeta"}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-white/60">Tipo</p>
+                    <p className="mt-1 text-sm font-semibold text-white">{c.tier || "Standard"}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/70">
+                  <span>{c.promoPhysical ? "Física" : "Digital"}</span>
+                  <span>{c.frozen ? "Bloqueada" : "Disponible"}</span>
                 </div>
               </li>
             ))}

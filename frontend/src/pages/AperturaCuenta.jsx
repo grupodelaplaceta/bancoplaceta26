@@ -2,10 +2,11 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 
 const TIPOS = [
-  { value: "Current", label: "Cuenta personal", description: "Cuenta corriente para tu uso diario." },
-  { value: "Business", label: "Cuenta de empresa", description: "Requiere una entidad con EIP verificado en RSP." },
-  { value: "Junior", label: "Cuenta Junior", description: "Se crea desde la app de Placeta Junior." },
-  { value: "Joven", label: "Cuenta Joven", description: "Se genera con la suscripción de Placeta Joven." },
+  { value: "Current", label: "Cuenta Corriente Web", description: "Cuenta corriente para tu uso diario desde la web del banco.", platform: "web" },
+  { value: "Current", label: "Cuenta Corriente APP", description: "Cuenta corriente con IBAN propio para la experiencia móvil del banco.", platform: "app" },
+  { value: "Savings", label: "Cuenta Ahorro Web", description: "Ahorro con interés directo diario del 0,02 % y plataforma web.", platform: "web" },
+  { value: "Savings", label: "Cuenta Ahorro APP", description: "Ahorro con interés directo diario del 0,02 % y plataforma app.", platform: "app" },
+  { value: "Business", label: "Cuenta de empresa", description: "Requiere una entidad con EIP verificado en RSP.", platform: "web" },
 ];
 
 export default function AperturaCuenta() {
@@ -23,7 +24,13 @@ export default function AperturaCuenta() {
     setFeedback(null);
     setWorking(true);
     try {
-      const result = await api.solicitarApertura({ tipoCuenta, displayName, eip, accountPurpose });
+      const result = await api.solicitarApertura({
+        tipoCuenta,
+        platform: selected.platform || "web",
+        displayName,
+        eip,
+        accountPurpose,
+      });
       setFeedback({ type: "success", text: result.message || "Solicitud enviada. Confirma la firma desde PlacetaID Móvil." });
     } catch (error) {
       const body = error.body || {};

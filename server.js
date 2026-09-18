@@ -263,6 +263,7 @@ app.post("/bff/apertura", requireAuth, bff(async (req, res) => {
     nombre,
     datos: {
       tipoCuenta,
+      plataforma: String(body.platform || "web").trim().toLowerCase() || "web",
       displayName: String(body.displayName || `Cuenta ${tipoCuenta}`).trim(),
       eip: String(body.eip || "").trim().toUpperCase() || null,
       accountPurpose: String(body.accountPurpose || "").trim() || null,
