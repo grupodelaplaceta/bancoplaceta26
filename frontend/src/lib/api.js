@@ -5,6 +5,17 @@
 const GET_CACHE = new Map();
 const GET_INFLIGHT = new Map();
 const GET_CACHE_MS = 8000;
+const AUTH_REDIRECT_COOLDOWN_MS = 6000;
+let lastAuthRedirectAt = 0;
+
+function triggerAuthRedirect() {
+  const pathname = window.location.pathname || "/";
+  if (pathname === "/login" || pathname === "/auth/callback") return;
+  const now = Date.now();
+  if (now - lastAuthRedirectAt < AUTH_REDIRECT_COOLDOWN_MS) return;
+  lastAuthRedirectAt = now;
+  window.location.replace("/login");
+}
 
 async function request(path, options = {}) {
   const method = String(options.method || "GET").toUpperCase();
@@ -51,8 +62,10 @@ async function requestUncached(path, options = {}) {
     body = { raw: text };
   }
   if (res.status === 401) {
-    // Sesión caducada: vuelve al flujo de login de PlacetaID.
-    window.location.href = "/login";
+    // Las 401 temporales pueden aparecer durante la revalidación del token o
+    // al recuperar la sesión tras un refresh. No hacemos un bucle de redirect
+    // continuo y solo redirigimos si no se ha hecho uno reciente.
+    triggerAuthRedirect();
     throw new Error("no_autenticado");
   }
   if (res.status === 404 && body.error === "titular_no_encontrado") {
@@ -77,6 +90,8 @@ export const api = {
   cuenta: () => request("/bff/me"),
   solicitarApertura: (payload) => request("/bff/apertura", { method: "POST", body: JSON.stringify(payload) }),
   solicitarProducto: (payload) => request("/bff/productos/solicitar", { method: "POST", body: JSON.stringify(payload) }),
+  productos: (cuenta) => request(`/bff/productos?cuenta=${encodeURIComponent(cuenta || "")}`),
+  ventas: (cuenta) => request(`/bff/ventas?cuenta=${encodeURIComponent(cuenta || "")}`),
   movimientos: (cuenta, limit = 100) =>
     request(`/bff/movimientos?cuenta=${encodeURIComponent(cuenta || "")}&limit=${limit}`),
   tarjetas: (cuenta) => request(`/bff/tarjetas?cuenta=${encodeURIComponent(cuenta || "")}`),

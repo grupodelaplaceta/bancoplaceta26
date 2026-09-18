@@ -9,6 +9,7 @@ export default function Dashboard({ cuenta }) {
   const [movs, setMovs] = useState(null);
   const [err, setErr] = useState(null);
   const [saldoVisible, setSaldoVisible] = useState(true);
+  const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
     if (!cuenta) return;
@@ -30,7 +31,7 @@ export default function Dashboard({ cuenta }) {
   const perfil = esJunior
     ? { nombre: 'Cuenta Placeta Junior', descripcion: 'Operativa supervisada para menores de 16 años.', acciones: [['PlaceZUM', '#placezum', 'zum'], ['Movimientos', '#movimientos', 'activity'], ['Normativa', '#normativa', 'book']] }
     : esEmpresa
-      ? { nombre: 'Cuenta de empresa', descripcion: 'Herramientas para tesorería, facturación y obligaciones del proyecto.', acciones: [['Facturación', '#facturacion', 'receipt'], ['Tributos', '#tributos', 'building'], ['Documentos', '#normativa', 'book']] }
+      ? { nombre: 'Cuenta de empresa', descripcion: 'Herramientas para tesorería, pagos y control del proyecto.', acciones: [['Transferir', '#transferencia', 'send'], ['Gestores', '#gestores', 'users'], ['Movimientos', '#movimientos', 'activity'], ['Documentos', '#normativa', 'book']] }
       : esAhorro
         ? { nombre: 'Cuenta de ahorro', descripcion: 'Rendimiento directo diario del 0,02 % desde Banco de La Placeta.', acciones: [['Transferir', '#transferencia', 'send'], ['Ver movimientos', '#movimientos', 'activity'], ['Ver tarjetas', '#tarjetas', 'card'], ['Inversiones', '#inversiones', 'briefcase']] }
         : { nombre: 'Cuenta personal', descripcion: 'Gestiona tus Placetas, pagos y documentación desde un único espacio.', acciones: [['Enviar Placetas', '#transferencia', 'send'], ['Recargar', '#transferencia', 'plus'], ['Pagar servicios', '#placezum', 'receipt'], ['Proyectos', '#inversiones', 'briefcase']] };
@@ -91,25 +92,39 @@ export default function Dashboard({ cuenta }) {
           <EmptyState title="Sin movimientos todavía" hint="Cuando realices una operación aparecerá aquí." />
         ) : (
           <ul className="divide-y divide-brand/5">
-            {movs.map((m) => (
-              <li key={m.id} className="flex items-center justify-between gap-3 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-brand-dark">
-                    {m.concept || m.kind}
-                  </p>
-                  <p className="text-xs text-brand-dark/50">{formatFecha(m.createdAt)}</p>
-                </div>
-                <span
-                  className={
-                    "whitespace-nowrap text-sm font-extrabold " +
-                    (m.esEntrada ? "text-emerald-600" : "text-rose-500")
-                  }
-                >
-                  {m.esEntrada ? "+" : "−"}
-                  {formatPz(m.amountPz)} Pz
-                </span>
-              </li>
-            ))}
+            {movs.map((m) => {
+              const abierto = selectedId === m.id;
+              return (
+                <li key={m.id} className="py-1">
+                  <button type="button" onClick={() => setSelectedId(abierto ? null : m.id)} className="flex w-full items-center justify-between gap-4 rounded-xl px-3 py-3 text-left transition-colors hover:bg-brand/5">
+                    <span className="flex min-w-0 items-center gap-3">
+                      <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg ${m.esEntrada ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-500"}`} aria-hidden="true">{m.esEntrada ? "↓" : "↑"}</span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-bold text-brand-dark">{m.concept || "Movimiento bancario"}</span>
+                        <span className="block text-xs text-brand-dark/50">{formatFecha(m.createdAt)} · {m.status === "Settled" ? "Completado" : m.status === "Pending" ? "Pendiente" : m.status || "Registrado"}</span>
+                      </span>
+                    </span>
+                    <span className={`whitespace-nowrap text-sm font-extrabold ${m.esEntrada ? "text-emerald-600" : "text-rose-500"}`}>{m.esEntrada ? "+" : "−"}{formatPz(m.amountPz)} Pz</span>
+                  </button>
+                  {abierto && (
+                    <div className="mx-3 mb-2 rounded-xl border border-brand/10 bg-brand/5 p-4">
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-extrabold text-brand-dark">Detalle</p>
+                        <Badge tone={m.status === "Settled" ? "green" : m.status === "Pending" ? "amber" : "gray"}>{m.status === "Settled" ? "Completado" : m.status === "Pending" ? "Pendiente" : m.status || "Registrado"}</Badge>
+                      </div>
+                      <dl className="grid gap-x-5 gap-y-2 text-xs sm:grid-cols-2">
+                        <div><dt className="text-brand-dark/50">Concepto</dt><dd className="font-bold text-brand-dark">{m.concept || "Movimiento bancario"}</dd></div>
+                        <div><dt className="text-brand-dark/50">Importe</dt><dd className={`font-bold ${m.esEntrada ? "text-emerald-600" : "text-rose-500"}`}>{m.esEntrada ? "+" : "−"}{formatPz(m.amountPz)} Pz</dd></div>
+                        <div><dt className="text-brand-dark/50">Cuenta origen</dt><dd className="font-semibold text-brand-dark">{m.fromAccountId || "—"}</dd></div>
+                        <div><dt className="text-brand-dark/50">Cuenta destino</dt><dd className="font-semibold text-brand-dark">{m.toAccountId || "—"}</dd></div>
+                        <div><dt className="text-brand-dark/50">Fecha</dt><dd className="font-semibold text-brand-dark">{formatFecha(m.createdAt)}</dd></div>
+                        <div><dt className="text-brand-dark/50">Referencia</dt><dd className="break-all font-semibold text-brand-dark">{m.id}</dd></div>
+                      </dl>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </Card>

@@ -176,41 +176,49 @@ select {
 .product-launcher-cluster {
   position: fixed;
   right: 28px;
-  bottom: 28px;
+  bottom: 94px;
   z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
   pointer-events: none;
 }
 
+.product-launcher-cluster.is-expanded {
+  pointer-events: auto;
+}
+
 .product-launcher-action {
-  position: absolute;
-  right: 0;
-  bottom: 0;
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 12px 9px 10px;
+  padding: 8px 12px 8px 10px;
   border: 1px solid rgba(50, 4, 217, .12);
   border-radius: 999px;
   background: rgba(255, 255, 255, .96);
   color: var(--gdlp-primary);
-  font: 700 12px "Montserrat Alternates", sans-serif;
+  font: 700 11px "Montserrat Alternates", sans-serif;
   box-shadow: 0 12px 20px rgba(21, 2, 89, .10);
   opacity: 0;
-  transform: translate(0, 0) scale(.95);
+  transform: translateY(6px) scale(.96);
   transition: opacity .2s ease, transform .2s ease;
   pointer-events: none;
+  white-space: nowrap;
 }
 
 .product-launcher-cluster.is-expanded .product-launcher-action {
   opacity: 1;
   pointer-events: auto;
+  transform: translateY(0) scale(1);
 }
 
 .product-launcher-action-icon {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: var(--gdlp-surface-alt);
 }
@@ -253,11 +261,11 @@ select {
 .product-option > span:last-child { color: var(--gdlp-muted); font-size: 12px; line-height: 1.5; }
 .product-option-card { padding: 10px; }
 .product-option-icon, .product-detail-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: var(--gdlp-surface-alt); color: var(--gdlp-primary); }
-.product-option-visual { display: block; overflow: hidden; border-radius: 14px; width: 100%; height: 110px; background: linear-gradient(135deg, #1a0d4f, #3a23cf); }
-.product-option-visual img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.product-option-visual { display: block; overflow: hidden; border-radius: 14px; width: 100%; height: 92px; background: linear-gradient(135deg, #1a0d4f, #3a23cf); }
+.product-option-visual img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }
 .product-detail { max-width: 560px; margin: 0 auto; }
 .product-card-visual { overflow: hidden; border-radius: 16px; box-shadow: 0 16px 36px rgba(21, 2, 89, .15); margin: 8px 0 16px; }
-.product-card-visual img { display: block; width: 100%; max-height: 210px; object-fit: cover; }
+.product-card-visual img { display: block; width: 100%; max-height: 180px; object-fit: contain; object-position: center; background: linear-gradient(135deg, #1a0d4f, #3a23cf); }
 .product-detail-icon { width: 58px; height: 58px; margin: 12px 0 14px; }
 .product-detail h3 { margin: 0; font-size: 23px; }
 .product-detail > p { margin: 8px 0 18px; color: var(--gdlp-muted); font-size: 14px; line-height: 1.6; }
@@ -548,6 +556,12 @@ body{background:#f4f5ff;background-image:radial-gradient(900px 420px at 92% -10%
 .investment-hero .eyebrow { color:#b9c2ff; }
 .investment-hero-orb { display:grid; place-content:center; flex:none; width:112px; height:112px; border:1px solid rgba(255,255,255,.3); border-radius:50%; background:radial-gradient(circle,#6736ff,#3204d9 60%,#21038c); box-shadow:0 0 0 14px rgba(255,255,255,.06); text-align:center; transform:rotate(-8deg); }
 .investment-hero-orb span { font:800 38px/1 "Montserrat Alternates",sans-serif; }.investment-hero-orb small { margin-top:3px; color:#cbd1ff; font-size:13px; font-weight:800; }
+.investment-summary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.investment-summary-card { display:flex; flex-direction:column; gap:6px; min-height:130px; padding:18px 16px; border:1px solid var(--brand-line); background:linear-gradient(180deg,#fff,#f8f4ff); }
+.investment-summary-card-primary { border-color:transparent; background:linear-gradient(135deg,#150259,#3204d9 70%,#6b23ff); color:#fff; }
+.investment-summary-label { color:inherit; opacity:.7; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.investment-summary-value { color:inherit; font:800 22px/1.15 "Montserrat Alternates",sans-serif; letter-spacing:-.04em; }
+.investment-summary-trend { color:inherit; opacity:.8; font-size:12px; font-weight:700; }
 .investment-layout { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr); gap:16px; }.investment-start-card,.investment-limits-card { min-width:0; }.investment-field { display:flex; flex-direction:column; gap:6px; color:var(--brand-muted); font-size:11px; font-weight:800; }.investment-field select,.investment-field input { min-height:44px; border:1px solid var(--brand-line); border-radius:12px; padding:0 12px; color:var(--brand-ink); background:#fff; font:700 13px "Plus Jakarta Sans",sans-serif; outline:none; }.investment-field select:focus,.investment-field input:focus { border-color:var(--brand-purple); box-shadow:0 0 0 3px rgba(50,4,217,.1); }.investment-field small { color:var(--brand-muted); font-size:10px; font-weight:600; }.investment-entity-preview { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border:1px solid #e7e1ff; border-radius:13px; background:#f8f6ff; }.investment-entity-preview div { display:flex; min-width:0; flex-direction:column; gap:3px; }.investment-entity-preview strong { overflow:hidden; color:var(--brand-ink); text-overflow:ellipsis; white-space:nowrap; }.investment-entity-preview span { color:var(--brand-muted); font-size:10px; }.investment-estimate { display:flex; flex-direction:column; gap:3px; padding:13px; border-radius:13px; color:#fff; background:#21038c; }.investment-estimate span,.investment-estimate small { color:rgba(255,255,255,.65); font-size:10px; }.investment-estimate strong { font:800 20px "Montserrat Alternates",sans-serif; }.investment-primary-button { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:45px; border:0; border-radius:13px; color:#fff; background:var(--brand-purple); font:800 13px "Montserrat Alternates",sans-serif; cursor:pointer; box-shadow:0 10px 20px rgba(50,4,217,.22); transition:transform .16s,background .16s; }.investment-primary-button:hover:not(:disabled) { transform:translateY(-2px); background:#21038c; }.investment-primary-button:disabled { opacity:.48; cursor:not-allowed; }.investment-limit-row { display:flex; justify-content:space-between; gap:14px; padding:12px 0; border-bottom:1px solid var(--brand-line); color:var(--brand-muted); font-size:12px; }.investment-limit-row strong { color:var(--brand-ink); text-align:right; }.investment-disclaimer { margin:17px 0 0; color:var(--brand-muted); font-size:11px; line-height:1.6; }.investment-active-count { margin-bottom:13px; color:var(--brand-purple); font-size:11px; font-weight:800; }.investment-active-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }.investment-active-card { border:1px solid #e9ddff; background:linear-gradient(145deg,#fff,#f8f6ff); }.investment-active-top { display:flex; align-items:center; gap:7px; color:var(--brand-muted); font-size:11px; font-weight:800; }.investment-active-top .badge { margin-left:auto; }.investment-pulse { width:8px; height:8px; border-radius:50%; background:#f59e0b; box-shadow:0 0 0 5px rgba(245,158,11,.14); animation:investmentPulse 1.4s ease-in-out infinite; }.investment-active-card h3 { margin:17px 0 5px; color:var(--brand-ink); font:800 16px "Montserrat Alternates",sans-serif; }.investment-active-amount { color:var(--brand-purple); font:800 28px "Montserrat Alternates",sans-serif; }.investment-active-amount small { color:var(--brand-muted); font:600 11px "Plus Jakarta Sans",sans-serif; }.investment-progress { height:7px; margin:18px 0 9px; overflow:hidden; border-radius:99px; background:#e9e1ff; }.investment-progress span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#6b23ff,#f59e0b); transition:width 1s linear; }.investment-active-card p { margin:0; color:var(--brand-muted); font-size:10px; }.investment-history-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 2px; }.investment-history-row div { display:flex; min-width:0; flex-direction:column; gap:4px; }.investment-history-row strong { color:var(--brand-ink); font-size:12px; }.investment-history-row span { color:var(--brand-muted); font-size:10px; }.investment-history-row .text-right strong { font-size:13px; }
 @keyframes investmentPulse { 50% { transform:scale(1.35); opacity:.65; } }
 

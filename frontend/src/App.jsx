@@ -22,6 +22,8 @@ const Subvenciones = lazy(() => import("@/pages/Subvenciones"));
 const Cumplimiento = lazy(() => import("@/pages/Cumplimiento"));
 const Normativa = lazy(() => import("@/pages/Normativa"));
 const AperturaCuenta = lazy(() => import("@/pages/AperturaCuenta"));
+const Productos = lazy(() => import("@/pages/Productos"));
+const Ventas = lazy(() => import("@/pages/Ventas"));
 
 const BASE_NAV = [
   { group: "Operar", items: [
@@ -67,6 +69,8 @@ const PAGES = {
   nominas: Nominas,
   tributos: Tributos,
   facturacion: Facturacion,
+  productos: Productos,
+  ventas: Ventas,
   subvenciones: Subvenciones,
   cumplimiento: Cumplimiento,
   normativa: Normativa,
@@ -143,8 +147,16 @@ export default function App() {
     if (cuentaEmpresa) {
       visible = BASE_NAV.map((section) => ({
         ...section,
-        items: section.items.filter((item) => !["apertura"].includes(item.id))
+        items: section.items.filter((item) => !["tributos", "facturacion", "apertura"].includes(item.id))
       })).filter((section) => section.items.length);
+
+      const empresaSection = visible.find((section) => section.group === "Cuentas y medios");
+      if (empresaSection) {
+        empresaSection.items.push(
+          { id: "productos", label: "Productos", icon: "chip" },
+          { id: "ventas", label: "Ventas", icon: "receipt" }
+        );
+      }
     }
 
     if (!inversionesPermitidas) {

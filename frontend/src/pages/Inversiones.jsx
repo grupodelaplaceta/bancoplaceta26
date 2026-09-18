@@ -25,7 +25,14 @@ export default function Inversiones({ cuenta }) {
       const response = await api.inversiones(cuenta?.id);
       setData(response);
       setErr(null);
-      if (!entityId && response.entidades?.[0]) setEntityId(response.entidades[0].id);
+      const entidades = Array.isArray(response?.entidades)
+        ? response.entidades
+        : Array.isArray(response?.opciones)
+          ? response.opciones
+          : Array.isArray(response?.fondos)
+            ? response.fondos
+            : [];
+      if (!entityId && entidades[0]) setEntityId(entidades[0].id || entidades[0].entityId || entidades[0].codigo || "");
     } catch (error) {
       setErr(error.message);
     }
@@ -39,12 +46,23 @@ export default function Inversiones({ cuenta }) {
     return () => window.clearInterval(interval);
   }, [cuenta?.id]);
 
-  const operaciones = data?.operaciones || [];
+  const operaciones = Array.isArray(data?.operaciones) ? data.operaciones : [];
+  const entidades = Array.isArray(data?.entidades)
+    ? data.entidades
+    : Array.isArray(data?.opciones)
+      ? data.opciones
+      : Array.isArray(data?.fondos)
+        ? data.fondos
+        : [];
   const activas = operaciones.filter((operation) => !operation.settledAt && secondsLeft(operation) > 0);
   const vencidas = operaciones.filter((operation) => !operation.settledAt && secondsLeft(operation) <= 0);
-  const entidad = (data?.entidades || []).find((item) => item.id === entityId) || data?.entidades?.[0];
-  const maxAmount = entidad ? Math.min(Math.floor((Number(cuenta?.balancePz) || 0) * .25), entidad.disponiblePz, 5000) : 0;
+  const entidad = entidades.find((item) => (item.id || item.entityId || item.codigo) === entityId) || entidades[0] || null;
+  const maxAmount = entidad ? Math.min(Math.floor((Number(cuenta?.balancePz) || 0) * .25), Number(entidad.disponiblePz || entidad.disponible || entidad.capacidadPz || 0), 5000) : 0;
   const totalActivo = activas.reduce((sum, operation) => sum + Number(operation.amountPz || 0), 0);
+  const proximoVencimiento = activas.length
+    ? Math.min(...activas.map((operation) => secondsLeft(operation)))
+    : 0;
+  const riesgoPromedio = entidad ? riskLabel[entidad.riskLevel] || "Moderado" : "Moderado";
 
   const iniciar = async (event) => {
     event.preventDefault();
@@ -78,6 +96,7 @@ export default function Inversiones({ cuenta }) {
   }, [entidad]);
 
   if (err && !data) return <EmptyState title="No se pudieron cargar las inversiones" hint={err} />;
+  const listaEntidades = entidades.length ? entidades : [];
 
   return (
     <div className="investment-page space-y-6">
@@ -87,13 +106,31 @@ export default function Inversiones({ cuenta }) {
       </div>
 
       {notice && <div className={`workspace-alert ${notice.type === "error" ? "workspace-alert-error" : "workspace-alert-success"}`}>{notice.text}</div>}
-      {!data ? <Card><Skeleton className="h-40 w-full" /></Card> : data.disponible === false ? <Card><EmptyState title="Cuenta no habilitada" hint="La Inversión 60s requiere una cuenta de inversión o de empresa autorizada." /></Card> : <>
+      {!data ? <Card><Skeleton className="h-40 w-full" /></Card> : data.disponible === false && listaEntidades.length === 0 ? <Card><EmptyState title="Cuenta no habilitada" hint="La Inversión 60s requiere una cuenta de inversión o de empresa autorizada." /></Card> : <>
+        <section className="investment-summary-grid">
+          <Card className="investment-summary-card investment-summary-card-primary">
+            <span className="investment-summary-label">Mercado destacado</span>
+            <strong className="investment-summary-value">{entidad?.nombre || "Fondo de corto plazo"}</strong>
+            <span className="investment-summary-trend">Riesgo {riesgoPromedio} · Patrimonio disponible {formatPz(entidad?.capacidadPz || 0)} Pz</span>
+          </Card>
+          <Card className="investment-summary-card">
+            <span className="investment-summary-label">Activo ahora</span>
+            <strong className="investment-summary-value">{formatPz(totalActivo)}</strong>
+            <span className="investment-summary-trend">{activas.length} posiciones vivas</span>
+          </Card>
+          <Card className="investment-summary-card">
+            <span className="investment-summary-label">Siguiente vencimiento</span>
+            <strong className="investment-summary-value">{proximoVencimiento ? `${proximoVencimiento}s` : "-"}</strong>
+            <span className="investment-summary-trend">Liquidación automática</span>
+          </Card>
+        </section>
+
         <section className="investment-layout">
           <Card className="investment-start-card">
             <SectionTitle title="Nueva inversión" subtitle="Pz bloqueados durante 60 segundos." className="mb-4" />
             <form onSubmit={iniciar} className="space-y-4">
-              <label className="investment-field">Entidad del Fondo<select required value={entityId} onChange={(event) => setEntityId(event.target.value)}><option value="">Selecciona una entidad</option>{(data.entidades || []).map((item) => <option key={item.id} value={item.id}>{item.nombre} · Riesgo {riskLabel[item.riskLevel]}</option>)}</select></label>
-              {entidad && <div className="investment-entity-preview"><div><strong>{entidad.nombre}</strong><span>{entidad.invertidoPz.toLocaleString("es-ES")} / {entidad.capacidadPz.toLocaleString("es-ES")} Pz captados</span></div><Badge tone={riskTone[entidad.riskLevel] || "amber"}>{riskLabel[entidad.riskLevel]}</Badge></div>}
+              <label className="investment-field">Entidad del Fondo<select required value={entityId} onChange={(event) => setEntityId(event.target.value)}><option value="">Selecciona una entidad</option>{listaEntidades.map((item) => <option key={item.id || item.entityId || item.codigo} value={item.id || item.entityId || item.codigo}>{item.nombre || item.name || item.entityName} · Riesgo {riskLabel[item.riskLevel || 3]}</option>)}</select></label>
+              {entidad && <div className="investment-entity-preview"><div><strong>{entidad.nombre || entidad.name || entidad.entityName}</strong><span>{Number(entidad.invertidoPz || entidad.invertido || 0).toLocaleString("es-ES")} / {Number(entidad.capacidadPz || entidad.capacidad || 0).toLocaleString("es-ES")} Pz captados</span></div><Badge tone={riskTone[entidad.riskLevel || 3] || "amber"}>{riskLabel[entidad.riskLevel || 3]}</Badge></div>}
               <label className="investment-field">Importe a invertir<input required type="number" min="1" max={maxAmount || undefined} step="1" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="500" /><small>Máximo recomendado ahora: {formatPz(maxAmount)} Pz</small></label>
               <div className="investment-estimate"><span>Escenario limitado</span><strong>{estimated || "Selecciona una entidad"}</strong><small>El componente aleatorio está limitado por el riesgo. No es una promesa de rentabilidad.</small></div>
               <button className="investment-primary-button" disabled={saving || !entityId || Number(amount) <= 0 || Number(amount) > maxAmount} type="submit"><Icon name="chart" size={18} />{saving ? "Creando posición…" : "Invertir durante 60s"}</button>

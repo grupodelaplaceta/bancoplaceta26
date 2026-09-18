@@ -22,6 +22,19 @@ export default function Gestores({ cuenta }) {
     };
   }, [cuenta?.id]);
 
+  const tipoCuenta = String(cuenta?.type || "").toLowerCase();
+  const esEmpresa = tipoCuenta === "business" || tipoCuenta === "empresa" || tipoCuenta === "organismo";
+  const roleOptions = esEmpresa
+    ? [
+        { value: "manager", label: "Gestor" },
+        { value: "cotitular", label: "Cotitular" },
+        { value: "project_owner", label: "Propietario de proyecto" },
+      ]
+    : [
+        { value: "manager", label: "Gestor" },
+        { value: "cotitular", label: "Cotitular" },
+      ];
+
   const totalParticipacion = (data || []).reduce((total, item) => total + (Number(item.ownershipPercent ?? item.percent ?? 0) || 0), 0);
   const pendiente = Math.max(0, 100 - totalParticipacion);
 
@@ -61,9 +74,9 @@ export default function Gestores({ cuenta }) {
         <form onSubmit={añadirCotitular} className="mb-4 grid gap-3 md:grid-cols-[1.3fr_0.8fr_0.7fr_auto]">
           <input required value={placetaId} onChange={(event) => setPlacetaId(event.target.value.toUpperCase())} placeholder="DIP del gestor" className="min-w-0 rounded-xl border border-brand/15 px-3 py-2 text-sm" />
           <select value={role} onChange={(event) => setRole(event.target.value)} className="rounded-xl border border-brand/15 bg-white px-3 py-2 text-sm">
-            <option value="manager">Gestor</option>
-            <option value="cotitular">Cotitular</option>
-            <option value="project_owner">Propietario de proyecto</option>
+            {roleOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
           </select>
           <input min="0" max="100" type="number" value={ownershipPercent} onChange={(event) => setOwnershipPercent(event.target.value)} placeholder="%" className="rounded-xl border border-brand/15 px-3 py-2 text-sm" />
           <button disabled={saving || !cuenta?.id} type="submit" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Solicitando…" : "Enviar"}</button>
