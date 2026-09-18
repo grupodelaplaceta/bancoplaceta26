@@ -13,8 +13,13 @@ function triggerAuthRedirect() {
   if (pathname === "/login" || pathname === "/auth/callback") return;
   const now = Date.now();
   if (now - lastAuthRedirectAt < AUTH_REDIRECT_COOLDOWN_MS) return;
+  const target = `${pathname}${window.location.search}${window.location.hash}`;
+  const key = "banco-auth-redirected";
+  const lastTarget = window.sessionStorage.getItem(key);
+  if (lastTarget === target) return;
+  window.sessionStorage.setItem(key, target);
   lastAuthRedirectAt = now;
-  window.location.replace("/login");
+  window.location.replace(`/login?returnTo=${encodeURIComponent(target)}`);
 }
 
 async function request(path, options = {}) {

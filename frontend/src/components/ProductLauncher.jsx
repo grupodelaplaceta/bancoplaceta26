@@ -164,7 +164,10 @@ export default function ProductLauncher({ cuenta }) {
             key={action.id}
             type="button"
             className="product-launcher-action"
-            style={{ transform: `translate(${Math.cos((index / quickActions.length) * Math.PI * 2 - Math.PI / 2) * 88}px, ${Math.sin((index / quickActions.length) * Math.PI * 2 - Math.PI / 2) * 88}px)` }}
+            style={{
+              transform: `translate(${Math.cos((index / quickActions.length) * Math.PI * 2 - Math.PI / 2) * 76}px, ${Math.sin((index / quickActions.length) * Math.PI * 2 - Math.PI / 2) * 76}px)`,
+              opacity: expanded ? 1 : 0,
+            }}
             onClick={action.action}
           >
             <span className="product-launcher-action-icon"><Icon name={action.icon} size={18} /></span>

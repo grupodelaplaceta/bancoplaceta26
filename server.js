@@ -473,34 +473,140 @@ app.post("/bff/inversiones/:id/liquidar", requireAuth, bff(async (req, res) => {
   return res.status(r.ok ? r.status : upstreamStatus(r)).json(r.body);
 }));
 
+function monthKey(dateLike) {
+  const date = new Date(dateLike || Date.now());
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+function sumComplementosMensuales(contrato = {}) {
+  const items = Array.isArray(contrato.complementos) ? contrato.complementos : [];
+  return items.reduce((total, item) => {
+    const activo = item && item.activo !== false;
+    if (!activo || item.tipo === "actividad") return total;
+    const importe = Number(item.importePz || 0);
+    const periodicidad = String(item.periodicidad || "mensual").toLowerCase();
+    if (periodicidad === "anual") return total + importe / 12;
+    return total + importe;
+  }, 0);
+}
+
+function completarPeriodosPendientes(contratos, periodosBase, cuentaEmpresaId) {
+  const periodos = [...(periodosBase || [])];
+  const existentes = new Map();
+  for (const periodo of periodos) {
+    const key = String(periodo.periodo || periodo.mes || periodo.id || "").trim();
+    if (key) existentes.set(key, true);
+  }
+
+  const today = new Date();
+  const currentMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
+
+  for (const contrato of contratos) {
+    const contractId = String(contrato.id || "").trim();
+    if (!contractId) continue;
+    const startDate = new Date(contrato.startDate || contrato.createdAt || Date.now());
+    if (Number.isNaN(startDate.getTime())) continue;
+    const iterator = new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), 1));
+    while (iterator <= currentMonth) {
+      const periodoKey = monthKey(iterator);
+      const exists = periodos.some((periodo) => {
+        const periodoName = String(periodo.periodo || periodo.mes || "").trim();
+        const sameContract = String(periodo.contractId || periodo.contrato?.id || "").trim() === contractId;
+        return periodoName === periodoKey && (sameContract || String(periodo.companyAccountId || "").trim() === String(cuentaEmpresaId || "").trim());
+      });
+      if (!exists && !existentes.has(periodoKey)) {
+        const bruto = Number(contrato.grossSalaryPz || 0) + sumComplementosMensuales(contrato);
+        const retencion = bruto * Number((contrato.retencionPct ?? 0) || 0) / 100;
+        periodos.push({
+          id: `periodo-pendiente-${contractId}-${periodoKey}`,
+          contractId,
+          companyAccountId: cuentaEmpresaId,
+          employeeDip: contrato.employeeDip,
+          employeeName: contrato.employeeName,
+          periodo: periodoKey,
+          label: `Nómina ${periodoKey}`,
+          status: "Pending",
+          brutoPz: bruto,
+          netoPz: bruto - retencion,
+          retencionesPz: retencion,
+          createdAt: new Date(iterator).toISOString()
+        });
+        existentes.set(periodoKey, true);
+      }
+      iterator.setUTCMonth(iterator.getUTCMonth() + 1);
+    }
+  }
+
+  return periodos.sort((left, right) => String(left.periodo || "").localeCompare(String(right.periodo || "")));
+}
+
 app.get("/bff/nominas", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
   const cuenta = String(req.query.cuenta || getCuenta(req) || "").trim();
-  // No enviamos `cuenta` al upstream: algunas versiones desplegadas de la
-  // API solo aceptan GET /api/web/nominas y respondían 405. El alcance se
-  // resuelve aquí por EIP, manteniendo el companyAccountId real de cada nómina.
   const r = await bffGet(token, "/api/web/nominas");
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
   if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   const body = r.body || {};
-  if (!cuenta) return res.json(body);
+  if (!cuenta) return res.json({ ...body, soyEmpresa: false, soyEmpleado: false });
 
   const me = await bffGet(token, "/api/web/cuenta");
   if (!me.ok) return res.status(upstreamStatus(me)).json({ error: me.body?.error || "banco_no_disponible" });
   const cuentas = Array.isArray(me.body?.cuentas) ? me.body.cuentas : [];
   const seleccionada = cuentas.find((item) => item.id === cuenta);
   if (!seleccionada) return res.status(404).json({ error: "cuenta_no_encontrada" });
-  const eip = String(seleccionada.eip || "").trim().toUpperCase();
-  const cuentasEip = new Set(cuentas.filter((item) => eip && String(item.eip || "").trim().toUpperCase() === eip).map((item) => item.id));
-  const contratos = (body.contratos || []).filter((contrato) =>
-    cuentasEip.size > 0 ? cuentasEip.has(contrato.companyAccountId) : contrato.companyAccountId === cuenta || contrato.accountId === cuenta
-  );
+  const tipoCuenta = String(seleccionada.type || "Current").toLowerCase();
+  const esEmpresa = ["business", "empresa", "organismo", "state"].includes(tipoCuenta);
+  const miDip = String(me.body?.usuario?.dip || "").trim().toUpperCase();
+  const contratosBase = Array.isArray(body.contratos) ? body.contratos : [];
+  const contratosEmpresa = esEmpresa ? contratosBase.filter((contrato) => {
+    const eip = String(seleccionada.eip || "").trim().toUpperCase();
+    const cuentasEip = new Set(cuentas.filter((item) => eip && String(item.eip || "").trim().toUpperCase() === eip).map((item) => item.id));
+    return cuentasEip.size > 0 ? cuentasEip.has(contrato.companyAccountId) : contrato.companyAccountId === cuenta || contrato.accountId === cuenta;
+  }) : [];
+  const contratosEmpleado = !esEmpresa ? contratosBase.filter((contrato) => String(contrato.employeeDip || "").trim().toUpperCase() === miDip) : [];
+  const contratos = esEmpresa ? contratosEmpresa : contratosEmpleado;
   const ids = new Set(contratos.map((contrato) => contrato.id));
+  const periodosBase = Array.isArray(body.periodos) ? body.periodos : [];
+  const periodos = completarPeriodosPendientes(contratos, periodosBase.filter((periodo) => {
+    if (esEmpresa) {
+      const eip = String(seleccionada.eip || "").trim().toUpperCase();
+      const cuentasEip = new Set(cuentas.filter((item) => eip && String(item.eip || "").trim().toUpperCase() === eip).map((item) => item.id));
+      return (cuentasEip.size > 0 ? cuentasEip.has(periodo.companyAccountId) : periodo.companyAccountId === cuenta) || (periodo.contractId && ids.has(periodo.contractId));
+    }
+    return String(periodo.employeeDip || "").trim().toUpperCase() === miDip || (periodo.contractId && ids.has(periodo.contractId));
+  }), cuenta);
+  const resumenesBase = Array.isArray(body.resumenes) ? body.resumenes : [];
+  const resumenes = [...resumenesBase.filter((resumen) => {
+    const id = String(resumen.contrato?.id || resumen.contractId || "").trim();
+    if (esEmpresa) return ids.has(id);
+    return String(resumen.employeeDip || resumen.contrato?.employeeDip || "").trim().toUpperCase() === miDip || ids.has(id);
+  })];
+  for (const periodo of periodos) {
+    const periodoKey = String(periodo.periodo || periodo.mes || "").trim();
+    if (periodo.status === "Pending" && !resumenes.some((resumen) => String(resumen.periodo || resumen.mes || "").trim() === periodoKey)) {
+      resumenes.push({
+        id: `resumen-${periodo.id}`,
+        contrato: { id: periodo.contractId, employeeDip: periodo.employeeDip, employeeName: periodo.employeeName },
+        periodo: periodo.periodo,
+        mes: periodo.periodo,
+        totalPz: Number(periodo.netoPz || 0),
+        netoPz: Number(periodo.netoPz || 0),
+        brutoPz: Number(periodo.brutoPz || 0),
+        retencionesPz: Number(periodo.retencionesPz || 0),
+        status: "Pending"
+      });
+    }
+  }
+  const soyEmpresa = esEmpresa && contratos.length > 0;
+  const soyEmpleado = !esEmpresa && Boolean(miDip && (contratos.length > 0 || periodos.length > 0));
   return res.json({
     ...body,
+    soyEmpresa,
+    soyEmpleado,
     contratos,
-    resumenes: (body.resumenes || []).filter((resumen) => ids.has(resumen.contrato?.id || resumen.contractId)),
-    periodos: (body.periodos || []).filter((periodo) => (cuentasEip.size > 0 ? cuentasEip.has(periodo.companyAccountId) : periodo.companyAccountId === cuenta) || periodo.contractId && ids.has(periodo.contractId))
+    resumenes,
+    periodos,
+    usuario: me.body?.usuario || body.usuario || null
   });
 }));
 

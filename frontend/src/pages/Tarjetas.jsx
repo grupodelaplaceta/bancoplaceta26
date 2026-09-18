@@ -41,12 +41,14 @@ export default function Tarjetas({ cuenta }) {
                 key={c.id}
                 className="overflow-hidden rounded-[24px] border border-brand/10 bg-white shadow-[0_16px_30px_rgba(22,11,74,0.10)]"
               >
-                <div className="relative h-28 overflow-hidden border-b border-brand/10 bg-gradient-to-br from-[#0b0227] via-[#190b59] to-[#3410c9]">
-                  <img
-                    src={c.image || c.cardImage || "/img/tarjta-debito-26.jpg"}
-                    alt={c.alias || "Tarjeta bancaria"}
-                    className="h-full w-full object-contain object-center p-2"
-                  />
+                <div className="relative h-24 overflow-hidden border-b border-brand/10 bg-gradient-to-br from-[#0b0227] via-[#190b59] to-[#3410c9]">
+                  <div className="mx-auto flex h-full w-full max-w-[220px] items-center justify-center px-3 py-2">
+                    <img
+                      src={c.image || c.cardImage || "/img/tarjta-debito-26.jpg"}
+                      alt={c.alias || "Tarjeta bancaria"}
+                      className="h-full w-full object-contain object-center"
+                    />
+                  </div>
                   <div className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-white/10 px-2 py-1 backdrop-blur-sm">
                     <span className="h-2 w-2 rounded-full bg-emerald-400" />
                     <span className="text-[9px] font-bold uppercase tracking-[0.16em] text-white">{c.frozen ? "Congelada" : "Activa"}</span>

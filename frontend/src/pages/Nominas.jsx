@@ -60,7 +60,9 @@ export default function Nominas({ cuenta }) {
   const contratos = Array.isArray(data?.contratos) ? data.contratos : [];
   const resumenes = Array.isArray(data?.resumenes) ? data.resumenes : [];
   const periodos = Array.isArray(data?.periodos) ? data.periodos : [];
-  const esEmpresa = ["business", "empresa"].includes(String(cuenta?.type || "").toLowerCase());
+  const esEmpresa = ["business", "empresa", "organismo", "state"].includes(String(cuenta?.type || "").toLowerCase());
+  const esEmpleado = Boolean(data?.soyEmpleado) || (!esEmpresa && contratos.length > 0);
+  const pendientes = periodos.filter((periodo) => String(periodo.status || "").toLowerCase() === "pending");
 
   const proximoPago = (contract) => {
     const dias = contract.frequency === "Monthly" ? 30 : contract.frequency === "Biweekly" ? 14 : 7;
@@ -200,6 +202,25 @@ export default function Nominas({ cuenta }) {
             >
               Volver a iniciar sesión
             </button>
+          </div>
+        </Card>
+      )}
+
+      {!err && (esEmpleado || esEmpresa) && data && (
+        <Card className="!border-brand/10 !bg-gradient-to-br !from-brand/5 !via-white !to-brand/5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-dark/50">
+                {esEmpresa ? "Gestión de nóminas" : "Tus nóminas"}
+              </p>
+              <h3 className="mt-1 text-lg font-extrabold text-brand-dark">
+                {esEmpresa ? "Periodos y contratos de la empresa" : "Pagos pendientes y cobrados"}
+              </h3>
+            </div>
+            <div className="rounded-2xl border border-brand/10 bg-white px-3 py-2 text-right">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-brand-dark/50">Pendientes</p>
+              <p className="mt-1 text-sm font-black text-brand-dark">{pendientes.length}</p>
+            </div>
           </div>
         </Card>
       )}
@@ -487,6 +508,56 @@ export default function Nominas({ cuenta }) {
                 </div>
               ))}
             </div>
+          )}
+        </Card>
+      )}
+
+      {!err && esEmpleado && !esEmpresa && (
+        <Card>
+          <SectionTitle title="Tus nóminas" subtitle="Pagos asociados a los contratos en los que estás contratado." className="mb-3" />
+          {!data ? (
+            <Skeleton className="h-24 w-full" />
+          ) : contratos.length === 0 ? (
+            <EmptyState title="Sin nóminas" hint="Todavía no tienes ningún contrato asociado a tu cuenta." />
+          ) : (
+            <ul className="space-y-3">
+              {contratos.map((c) => {
+                const activePeriod = periodos.find((p) => String(p.contractId || "").trim() === String(c.id || "").trim() || String(p.employeeDip || "").trim() === String(c.employeeDip || "").trim());
+                return (
+                  <li key={c.id} className="rounded-2xl border border-brand/10 bg-white p-3 shadow-sm shadow-brand/5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-extrabold text-brand-dark">{c.roleTitle || "Trabajador"}</p>
+                        <p className="text-xs text-brand-dark/55">{c.employeeName || c.employeeDip} · {c.companyAccountId}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-brand">{formatPz(c.grossSalaryPz || 0)} Pz</p>
+                        <p className="text-[11px] text-brand-dark/50">{c.frequency || "Mensual"}</p>
+                      </div>
+                    </div>
+                    {activePeriod && (
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-brand/5 px-3 py-2 text-xs text-brand-dark/70">
+                        <span>{activePeriod.label || activePeriod.periodo || "Periodo"}</span>
+                        <span className={String(activePeriod.status || "").toLowerCase() === "pending" ? "font-bold text-amber-700" : "font-bold text-emerald-700"}>
+                          {String(activePeriod.status || "").toLowerCase() === "pending" ? "Pendiente" : "Cobrado"}
+                        </span>
+                        <span className="font-bold text-brand-dark">{formatPz(activePeriod.netoPz || 0)} Pz</span>
+                      </div>
+                    )}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <a className="rounded-xl bg-brand/10 px-3 py-2 text-xs font-bold text-brand" href={`/bff/nominas/contratos/${encodeURIComponent(c.id)}/pdf`}>
+                        Descargar contrato PDF
+                      </a>
+                      {activePeriod && (
+                        <a className="rounded-xl border border-brand/10 bg-white px-3 py-2 text-xs font-bold text-brand-dark" href={`/bff/nominas/periodos/${encodeURIComponent(activePeriod.id)}/pdf`}>
+                          Ver recibo
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </Card>
       )}
