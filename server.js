@@ -807,11 +807,37 @@ const publicPages = {
       { icon: "chart", title: "Evolución pública", text: "Los servicios se mejoran con criterios de accesibilidad, seguridad y trazabilidad." },
       { icon: "book", title: "Normativa publicada", text: "Consulta los sistemas de funcionamiento y la documentación oficial en el BOLP." }
     ]
+  },
+  "/como-funciona": {
+    eyebrow: "Cómo funciona",
+    title: "Todo se entiende antes de operar.",
+    description: "Cómo funciona el Banco de La Placeta, la cuenta activa, la identidad y la trazabilidad.",
+    intro: "La cuenta, la identidad del titular y la documentación asociada se mantienen conectadas para que cada operación pueda entenderse y verificarse.",
+    backLabel: "Volver a la portada",
+    showcaseTitle: "Seguridad con contexto",
+    showcaseText: "La web pública explica el contexto sin requerir que el usuario entre antes de comprender qué está haciendo.",
+    sectionEyebrow: "Flujo básico",
+    sectionTitle: "Tres pasos sencillos para operar con confianza.",
+    sectionIntro: "Las cuentas, los documentos y el resumen de la operación se mantienen visibles para facilitar la comprensión y la trazabilidad.",
+    cards: [
+      { icon: "shield", title: "Valida identidad", text: "PlacetaID confirma la identidad del titular antes de conceder acceso a la zona privada." },
+      { icon: "users", title: "Selecciona cuenta", text: "La cuenta activa marca el saldo, los movimientos y los servicios disponibles para ese perfil." },
+      { icon: "book", title: "Consulta y conserva", text: "Cada operación queda vinculada a la fecha, la referencia y la documentación pertinente." }
+    ]
   }
 };
 
 Object.entries(publicPages).forEach(([path, page]) => {
-  app.get(path, (req, res) => res.render("public-page", { ...page, layout: false }));
+  app.get(path, async (req, res) => {
+    const token = getToken(req);
+    let sessionUser = null;
+    if (token) {
+      const validated = await validateToken(token);
+      if (validated) sessionUser = validated;
+      else if (validated === false) clearTokenCookie(res);
+    }
+    res.render("public-page", { ...page, layout: false, sessionUser });
+  });
 });
 
 // SPA fallback: cualquier ruta de navegación del frontend sirve index.html.
