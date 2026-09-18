@@ -26,7 +26,14 @@
       </p>
     <% } %>
 
-    <% if (resultado && resultado.requiereTutor) { %>
+    <% if (resultado && resultado.pendienteFirma) { %>
+      <div class="bw-alert bw-alert-warn">
+        <strong>Solicitud enviada a PlacetaID Móvil.</strong>
+        <%= resultado.mensaje %>
+        La cuenta se creará cuando completes la firma electrónica.
+      </div>
+      <a class="bw-btn bw-btn-primary bw-btn-block" href="/">Volver a mi banco</a>
+    <% } else if (resultado && resultado.requiereTutor) { %>
       <div class="bw-alert bw-alert-warn">
         <strong>Eres menor de 16 años.</strong>
         El Banco de La Placeta está dirigido a mayores de 16. Para menores de edad

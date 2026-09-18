@@ -155,6 +155,71 @@ function bffGet(token, path) {
 function bffPost(token, path, body) {
   return webPost(token, path, body);
 }
+
+function bffTrustedPost(token, path, body) {
+  return webPost(token, path, body, { 'X-API-Key': process.env.DOCS_API_KEY || 'docs-shared-key-2026' });
+}
+
+const FECHA_FIN_SUBVENCION_EMPRESA = process.env.EMPRESA_SUBVENCION_FECHA_FIN || "2026-12-31";
+const URL_PLACETA_JUNIOR = process.env.PLACETA_JUNIOR_URL || "https://junior.laplaceta.org";
+const URL_PLACETA_JOVEN = process.env.PLACETA_JOVEN_URL || "https://joven.laplaceta.org";
+
+function tipoCuentaNormalizado(value) {
+  return String(value || "Current").trim().toLowerCase();
+}
+
+function politicaApertura(tipoCuenta, eip, cuentas = []) {
+  const tipo = tipoCuentaNormalizado(tipoCuenta);
+  if (tipo === "junior" || tipo.includes("juvenil") || tipo === "child") {
+    return {
+      ok: false,
+      status: 409,
+      body: {
+        error: "alta_junior_desde_app",
+        message: "Las cuentas Junior se crean desde la app de Placeta Junior.",
+        redirect: URL_PLACETA_JUNIOR
+      }
+    };
+  }
+  if (tipo === "joven" || tipo.includes("joven")) {
+    return {
+      ok: false,
+      status: 409,
+      body: {
+        error: "cuenta_joven_por_suscripcion",
+        message: "La Cuenta Joven se genera al activar la suscripción de Placeta Joven.",
+        redirect: URL_PLACETA_JOVEN
+      }
+    };
+  }
+  if (["business", "empresa", "organismo", "state"].includes(tipo)) {
+    const buscado = String(eip || "").trim().toUpperCase();
+    const eipsTitular = new Set((cuentas || []).map((cuenta) => String(cuenta.eip || "").trim().toUpperCase()).filter(Boolean));
+    if (!buscado || !eipsTitular.has(buscado)) {
+      return {
+        ok: false,
+        status: 422,
+        body: {
+          error: "eip_verificado_requerido",
+          message: "Antes de crear una cuenta de empresa debes dar de alta y verificar la entidad de tu proyecto en RSP.",
+          redirect: "/bff/apertura"
+        }
+      };
+    }
+    return {
+      ok: true,
+      promocion: {
+        elegible: new Date(`${FECHA_FIN_SUBVENCION_EMPRESA}T23:59:59.999Z`).getTime() >= Date.now(),
+        importePz: 5000,
+        fechaFin: FECHA_FIN_SUBVENCION_EMPRESA,
+        emisor: "Banco de La Placeta",
+        requiereJustificacionRsp: true,
+        eipVerificado: buscado
+      }
+    };
+  }
+  return { ok: true, promocion: null };
+}
 function cuentaPath(req, path) {
   const cuenta = String(req.query.cuenta || getCuenta(req) || "").trim();
   return cuenta ? `${path}${path.includes("?") ? "&" : "?"}cuenta=${encodeURIComponent(cuenta)}` : path;
@@ -177,6 +242,34 @@ app.get("/bff/me", requireAuth, bff(async (req, res) => {
   const sel = getCuenta(req);
   const cuentaActiva = sel && cuentas.some((c) => c.id === sel) ? sel : (cuentas[0]?.id || null);
   return res.json({ usuario: r.body.usuario, cuentas, cuentaActiva });
+}));
+
+app.post("/bff/apertura", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const body = req.body || {};
+  const me = await bffGet(token, "/api/web/cuenta");
+  if (me.status === 401) return res.status(401).json({ error: "auth_required" });
+  if (!me.ok) return res.status(upstreamStatus(me)).json({ error: me.body?.error || "banco_no_disponible" });
+
+  const tipoCuenta = String(body.tipoCuenta || "Current").trim();
+  const politica = politicaApertura(tipoCuenta, body.eip, me.body?.cuentas || []);
+  if (!politica.ok) return res.status(politica.status).json(politica.body);
+
+  const nombre = String(me.body?.usuario?.displayName || me.body?.usuario?.dip || "Titular").trim();
+  const solicitud = await bffTrustedPost(token, "/api/document-actions", {
+    action: "solicitar-apertura-cuenta",
+    dip: String(me.body?.usuario?.dip || "").trim().toUpperCase(),
+    nombre,
+    datos: {
+      tipoCuenta,
+      displayName: String(body.displayName || `Cuenta ${tipoCuenta}`).trim(),
+      eip: String(body.eip || "").trim().toUpperCase() || null,
+      accountPurpose: String(body.accountPurpose || "").trim() || null,
+      promocionEmpresa: politica.promocion
+    }
+  });
+  if (!solicitud.ok) return res.status(upstreamStatus(solicitud)).json({ error: solicitud.body?.error || "no_se_pudo_iniciar_la_firma", detalle: solicitud.body });
+  return res.status(202).json({ ok: true, ...solicitud.body, promocion: politica.promocion });
 }));
 
 app.get("/bff/movimientos", requireAuth, bff(async (req, res) => {
@@ -261,6 +354,21 @@ app.get("/bff/inversiones", requireAuth, bff(async (req, res) => {
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
   if (!r.ok) return res.status(upstreamStatus(r)).json({ error: r.body?.error || "banco_no_disponible" });
   return res.json(r.body);
+}));
+
+app.post("/bff/inversiones", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const r = await bffPost(token, "/api/web/inversiones", req.body || {});
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  return res.status(r.ok ? r.status : upstreamStatus(r)).json(r.body);
+}));
+
+app.post("/bff/inversiones/:id/liquidar", requireAuth, bff(async (req, res) => {
+  const token = getToken(req);
+  const id = encodeURIComponent(String(req.params.id || ""));
+  const r = await bffPost(token, `/api/web/inversiones/${id}/liquidar`, {});
+  if (r.status === 401) return res.status(401).json({ error: "auth_required" });
+  return res.status(r.ok ? r.status : upstreamStatus(r)).json(r.body);
 }));
 
 app.get("/bff/nominas", requireAuth, bff(async (req, res) => {
@@ -540,16 +648,25 @@ app.get("/registro", requireAuth, async (req, res) => {
 
 app.post("/registro", requireAuth, async (req, res) => {
   const token = getToken(req);
-  const r = await webPost(token, "/api/web/registro", {});
+  const identidad = await validateToken(token);
+  if (!identidad) return res.redirect("/login?error=sesion_expirada");
+  const r = await webPost(token, "/api/document-actions", {
+    action: "solicitar-apertura-cuenta",
+    dip: identidad.dip,
+    nombre: identidad.nombre,
+    datos: {
+      tipoCuenta: "Current",
+      displayName: `Cuenta de ${identidad.nombre}`,
+      accountPurpose: "Cuenta corriente personal"
+    }
+  });
   if (r.status === 401) return res.redirect("/login");
-  const consulta = r.ok ? await webGet(token, "/api/web/registro") : null;
-  const resultado = r.ok ? r.body.registro : null;
-  // Menor de edad: la identidad queda registrada pero la cuenta la abre un tutor.
-  if (resultado && !resultado.requiereTutor) return res.redirect("/?alta=1");
+  const consulta = await webGet(token, "/api/web/registro");
+  const resultado = r.ok ? { pendienteFirma: true, mensaje: r.body.message || "Revisa PlacetaID Móvil para firmar el alta." } : null;
   renderRegistro(res, {
     consulta: consulta?.ok ? consulta.body : null,
     resultado,
-    error: r.ok ? null : (r.body?.error || "No se pudo completar el alta. Inténtalo de nuevo.")
+    error: r.ok ? null : (r.body?.error || "No se pudo iniciar la firma del alta. Inténtalo de nuevo.")
   });
 });
 

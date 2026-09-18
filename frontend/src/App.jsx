@@ -20,6 +20,7 @@ const Facturacion = lazy(() => import("@/pages/Facturacion"));
 const Subvenciones = lazy(() => import("@/pages/Subvenciones"));
 const Cumplimiento = lazy(() => import("@/pages/Cumplimiento"));
 const Normativa = lazy(() => import("@/pages/Normativa"));
+const AperturaCuenta = lazy(() => import("@/pages/AperturaCuenta"));
 
 const NAV = [
   { group: "Operar", items: [
@@ -29,6 +30,7 @@ const NAV = [
     { id: "placezum", label: "PlaceZUM", icon: "zum" },
   ]},
   { group: "Cuentas y medios", items: [
+    { id: "apertura", label: "Abrir cuenta", icon: "plus" },
     { id: "tarjetas", label: "Tarjetas", icon: "card" },
     { id: "gestores", label: "Gestores", icon: "users" },
     { id: "inversiones", label: "Inversiones", icon: "chart" },
@@ -48,6 +50,7 @@ const NAV = [
 
 const PAGES = {
   inicio: Dashboard,
+  apertura: AperturaCuenta,
   movimientos: Movimientos,
   transferencia: Transferencia,
   placezum: Placezum,

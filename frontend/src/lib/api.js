@@ -75,12 +75,15 @@ async function requestUncached(path, options = {}) {
 export const api = {
   me: () => request("/bff/me"),
   cuenta: () => request("/bff/me"),
+  solicitarApertura: (payload) => request("/bff/apertura", { method: "POST", body: JSON.stringify(payload) }),
   movimientos: (cuenta, limit = 100) =>
     request(`/bff/movimientos?cuenta=${encodeURIComponent(cuenta || "")}&limit=${limit}`),
   tarjetas: (cuenta) => request(`/bff/tarjetas?cuenta=${encodeURIComponent(cuenta || "")}`),
   gestores: (cuenta) => request(`/bff/gestores?cuenta=${encodeURIComponent(cuenta || "")}`),
   añadirCotitular: (payload) => request("/bff/gestores", { method: "POST", body: JSON.stringify(payload) }),
   inversiones: (cuenta) => request(`/bff/inversiones?cuenta=${encodeURIComponent(cuenta || "")}`),
+  iniciarInversion: (payload) => request("/bff/inversiones", { method: "POST", body: JSON.stringify(payload) }),
+  liquidarInversion: (id) => request(`/bff/inversiones/${encodeURIComponent(id)}/liquidar`, { method: "POST", body: "{}" }),
   nominas: (cuenta) => request(`/bff/nominas?cuenta=${encodeURIComponent(cuenta || "")}`),
   buscarTrabajador: (dip) => request(`/bff/nominas/trabajadores/buscar?dip=${encodeURIComponent(dip || "")}`),
   altaTrabajador: (payload) => request("/bff/nominas/trabajadores", { method: "POST", body: JSON.stringify(payload) }),
