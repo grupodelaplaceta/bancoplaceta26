@@ -108,7 +108,7 @@ export default function ProductLauncher({ cuenta }) {
     { id: isCompany ? "ventas" : "nueva-factura", label: isCompany ? "Ventas" : "Nueva factura", icon: "receipt", action: () => { setExpanded(false); if (isCompany) { window.location.hash = "ventas"; return; } window.location.hash = "facturacion"; } },
     { id: "producto-virtual", label: "Crear un producto virtual", icon: "chip", action: () => { setExpanded(false); setSelected({ ...ACCOUNT_OPTIONS[0], title: "Producto virtual", summary: "Vende tu producto desde una URL o pasarela insertable.", detail: "Empresas y proyectos pueden crear productos virtuales, compartir una URL de venta y recibir la confirmación del pago desde la web.", action: "Preparar producto virtual", characteristics: ["URL de venta", "Pasarela insertable", "Respuesta del pago"], kind: "virtual" }); setOpen(true); setFeedback(null); } },
     { id: "gestores", label: "Gestores", icon: "users", action: () => { setExpanded(false); window.location.hash = "gestores"; } },
-    { id: "transferir", label: "Transferir", icon: "send", action: () => { setExpanded(false); window.location.hash = "transferencia"; } },
+    { id: "transferir", label: "Transferir (PlaceZum o transferencia)", icon: "send", action: () => { setExpanded(false); window.location.hash = "transferencia"; } },
   ];
 
   const buildVirtualProduct = () => {

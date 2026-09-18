@@ -178,10 +178,8 @@ select {
   right: 28px;
   bottom: 96px;
   z-index: 25;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
+  width: 270px;
+  height: 270px;
   pointer-events: none;
 }
 
@@ -190,8 +188,10 @@ select {
 }
 
 .product-launcher-action {
-  position: relative;
-  display: flex;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 9px 14px 9px 10px;
@@ -202,10 +202,11 @@ select {
   font: 700 11px "Montserrat Alternates", sans-serif;
   box-shadow: 0 12px 24px rgba(21, 2, 89, .12);
   opacity: 0;
-  transform: translateY(6px) scale(.96);
-  transition: opacity .2s ease, transform .2s ease, box-shadow .2s ease;
+  transform: translateY(10px) scale(.92);
+  transition: opacity .22s ease, transform .22s ease, box-shadow .22s ease;
   pointer-events: none;
   white-space: nowrap;
+  max-width: 220px;
 }
 
 .product-launcher-cluster.is-expanded .product-launcher-action {
@@ -222,6 +223,7 @@ select {
   height: 24px;
   border-radius: 50%;
   background: var(--gdlp-surface-alt);
+  flex-shrink: 0;
 }
 
 .product-launcher {
@@ -231,17 +233,21 @@ select {
   z-index: 30;
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
+  width: 64px;
+  height: 64px;
   border: 0;
   border-radius: 50%;
-  background: var(--gdlp-primary);
+  background: radial-gradient(circle at 30% 30%, #5038ff 0%, #3204D9 55%, #21038C 100%);
   color: #fff;
-  box-shadow: 0 14px 30px rgba(50, 4, 217, .28);
-  transition: transform .16s ease, box-shadow .16s ease;
+  box-shadow: 0 18px 36px rgba(50, 4, 217, .34);
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
 }
 
-.product-launcher:hover { transform: translateY(-3px) rotate(90deg); box-shadow: 0 18px 38px rgba(50, 4, 217, .34); }
+.product-launcher:hover {
+  transform: translateY(-3px) scale(1.04) rotate(90deg);
+  box-shadow: 0 20px 42px rgba(50, 4, 217, .42);
+  filter: brightness(1.05);
+}
 .product-overlay { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 20px; background: rgba(21, 2, 89, .36); }
 .product-modal { width: min(760px, 100%); max-height: min(820px, 90vh); overflow-y: auto; border: 1px solid var(--gdlp-border); border-radius: 24px; background: #fff; padding: 26px; box-shadow: 0 30px 90px rgba(21, 2, 89, .24); }
 .product-modal-header { display: flex; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
