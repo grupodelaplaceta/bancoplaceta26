@@ -3,6 +3,7 @@ import express from "express";
 import expressLayouts from "express-ejs-layouts";
 import path from "path";
 import fs from "fs";
+import crypto from "node:crypto";
 import { fileURLToPath } from "url";
 import { loginUrl, validateToken } from "./lib/placetaid.js";
 import { getToken, setTokenCookie, clearTokenCookie, getCuenta, setCuentaCookie } from "./lib/session.js";
@@ -39,6 +40,12 @@ function safeReturnTo(value) {
   const candidate = String(value || "").trim();
   const allowed = candidate === "/panel" || candidate.startsWith("/pagar/");
   return allowed && !candidate.startsWith("//") ? candidate : "/panel";
+}
+
+function requestCookie(req, name) {
+  const entry = String(req.headers.cookie || "").split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`));
+  if (!entry) return "";
+  try { return decodeURIComponent(entry.slice(name.length + 1)); } catch { return ""; }
 }
 
 const APP_URL = publicOrigin();
@@ -114,18 +121,32 @@ app.get("/login", async (req, res) => {
     }
   }
   const returnTo = safeReturnTo(req.query.returnTo);
-  const callbackUrl = `${publicOrigin(req)}/auth/callback?returnTo=${encodeURIComponent(returnTo)}`;
-  res.render("login", { layout: false, loginUrl: loginUrl(callbackUrl), error: req.query.error || null });
+  const callbackUrl = `${publicOrigin(req)}/auth/callback`;
+  const state = crypto.randomBytes(24).toString("base64url");
+  const cookieOptions = { httpOnly: true, secure: publicOrigin(req).startsWith("https://"), sameSite: "lax", path: "/auth/callback", maxAge: 5 * 60 * 1000 };
+  res.cookie("placetaid_oauth_state", state, cookieOptions);
+  res.cookie("placetaid_return_to", returnTo, cookieOptions);
+  res.render("login", { layout: false, loginUrl: loginUrl(callbackUrl, state), error: req.query.error || null });
 });
 
 app.get("/auth/login", (req, res) => {
   const returnTo = safeReturnTo(req.query.returnTo);
-  const callbackUrl = `${publicOrigin(req)}/auth/callback?returnTo=${encodeURIComponent(returnTo)}`;
-  res.redirect(loginUrl(callbackUrl));
+  const callbackUrl = `${publicOrigin(req)}/auth/callback`;
+  const state = crypto.randomBytes(24).toString("base64url");
+  const cookieOptions = { httpOnly: true, secure: publicOrigin(req).startsWith("https://"), sameSite: "lax", path: "/auth/callback", maxAge: 5 * 60 * 1000 };
+  res.cookie("placetaid_oauth_state", state, cookieOptions);
+  res.cookie("placetaid_return_to", returnTo, cookieOptions);
+  res.redirect(loginUrl(callbackUrl, state));
 });
 
 app.get("/auth/callback", async (req, res) => {
-  const { token } = req.query;
+  const { token, state } = req.query;
+  const expectedState = requestCookie(req, "placetaid_oauth_state");
+  const returnTo = safeReturnTo(requestCookie(req, "placetaid_return_to"));
+  const cookieOptions = { httpOnly: true, secure: publicOrigin(req).startsWith("https://"), sameSite: "lax", path: "/auth/callback" };
+  res.clearCookie("placetaid_oauth_state", cookieOptions);
+  res.clearCookie("placetaid_return_to", cookieOptions);
+  if (!state || !expectedState || state !== expectedState) return res.redirect("/login?error=estado_invalido");
   if (!token) return res.redirect("/login?error=sin_token");
   const validated = await validateToken(token);
   if (validated === false) return res.redirect("/login?error=token_invalido");
@@ -133,7 +154,7 @@ app.get("/auth/callback", async (req, res) => {
   // acaba de devolver el token válido. Se acepta y se guarda la cookie para
   // que el usuario siga autenticado sin caer en salidas bruscas.
   setTokenCookie(res, token);
-  res.redirect(safeReturnTo(req.query.returnTo));
+  res.redirect(returnTo);
 });
 
 app.post("/auth/logout", (req, res) => {
@@ -158,8 +179,8 @@ function bff(fn) {
 function bffGet(token, path) {
   return webGet(token, path);
 }
-function bffPost(token, path, body) {
-  return webPost(token, path, body);
+function bffPost(token, path, body, extraHeaders) {
+  return webPost(token, path, body, extraHeaders);
 }
 
 function bffTrustedPost(token, path, body) {
@@ -687,7 +708,9 @@ app.post("/bff/cuenta/seleccionar", requireAuth, bff(async (req, res) => {
 
 app.post("/bff/transferencia", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffPost(token, "/api/web/transferencia", req.body || {});
+  const idempotencyKey = String(req.get("Idempotency-Key") || "").trim();
+  if (!/^[A-Za-z0-9._:-]{16,128}$/.test(idempotencyKey)) return res.status(400).json({ error: "idempotency_key_required" });
+  const r = await bffPost(token, "/api/web/transferencia", req.body || {}, { "Idempotency-Key": idempotencyKey });
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
   return res.status(r.status).json(r.body);
 }));
@@ -701,7 +724,9 @@ app.post("/bff/placezum/codigo", requireAuth, bff(async (req, res) => {
 
 app.post("/bff/placezum/pagar", requireAuth, bff(async (req, res) => {
   const token = getToken(req);
-  const r = await bffPost(token, "/api/web/placezum/pagar", req.body || {});
+  const idempotencyKey = String(req.get("Idempotency-Key") || "").trim();
+  if (!/^[A-Za-z0-9._:-]{16,128}$/.test(idempotencyKey)) return res.status(400).json({ error: "idempotency_key_required" });
+  const r = await bffPost(token, "/api/web/placezum/pagar", req.body || {}, { "Idempotency-Key": idempotencyKey });
   if (r.status === 401) return res.status(401).json({ error: "auth_required" });
   return res.status(r.status).json(r.body);
 }));
@@ -711,13 +736,48 @@ app.post("/bff/placezum/pagar", requireAuth, bff(async (req, res) => {
 app.get("/pagar/:id", async (req, res) => {
   const id = String(req.params.id || "").trim();
   const signature = String(req.query.signature || "").trim();
-  if (!id || !signature) return res.status(400).render("payment-link", { link: null, signature, error: "Este enlace está incompleto o ha sido manipulado." });
+  if (!id || !signature) return res.status(400).render("payment-link", { link: null, signature, pending: null, cuentas: [], error: "Este enlace está incompleto o ha sido manipulado." });
   const result = await publicPaymentLink(id, signature);
   if (!result.ok) {
     const status = result.status === 404 ? 404 : (result.status >= 400 && result.status < 500 ? result.status : 502);
-    return res.status(status).render("payment-link", { link: null, signature, error: result.body?.message || result.body?.error || "No se pudo verificar este enlace." });
+    return res.status(status).render("payment-link", { link: null, signature, pending: null, cuentas: [], error: result.body?.message || result.body?.error || "No se pudo verificar este enlace." });
   }
-  return res.render("payment-link", { link: result.body.link, signature, error: null });
+  let cuentas = [];
+  const token = getToken(req);
+  if (token) {
+    const profile = await webGet(token, "/api/web/cuenta");
+    if (profile.ok) cuentas = profile.body.cuentas || [];
+  }
+  return res.render("payment-link", { link: result.body.link, signature, pending: null, error: null, cuentas });
+});
+
+app.post("/pagar/:id/confirmar", async (req, res) => {
+  const id = String(req.params.id || "").trim();
+  const signature = String(req.body?.signature || "").trim();
+  const accountId = String(req.body?.accountId || "").trim();
+  const returnTo = `/pagar/${encodeURIComponent(id)}?signature=${encodeURIComponent(signature)}`;
+  const token = getToken(req);
+  if (!token) return res.redirect(`/auth/login?returnTo=${encodeURIComponent(returnTo)}`);
+  if (!id || !signature || !accountId) return res.status(400).redirect(returnTo);
+
+  const verified = await publicPaymentLink(id, signature);
+  if (!verified.ok) {
+    return res.status(verified.status === 404 ? 404 : 400).render("payment-link", {
+      link: null, signature, error: verified.body?.message || verified.body?.error || "No se pudo verificar el pago.", cuentas: []
+    });
+  }
+  const key = `pl-${crypto.randomUUID()}`;
+  const result = await bffPost(token, `/api/web/payment-links/${encodeURIComponent(id)}/pagar`, {
+    accountId, signature
+  }, { "Idempotency-Key": key });
+  if (!result.ok) {
+    const profile = await webGet(token, "/api/web/cuenta");
+    return res.status(result.status || 502).render("payment-link", {
+      link: verified.body.link, signature, cuentas: profile.ok ? profile.body.cuentas || [] : [],
+      error: result.body?.message || result.body?.error || "No se pudo registrar la solicitud de pago."
+    });
+  }
+  return res.render("payment-link", { link: verified.body.link, signature, cuentas: [], pending: result.body.payment });
 });
 
 // ── Página pública principal ────────────────────────────────────────────────

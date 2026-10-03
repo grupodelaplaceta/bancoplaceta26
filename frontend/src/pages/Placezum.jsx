@@ -36,6 +36,8 @@ export default function Placezum({ cuenta, cuentas }) {
   const [concept, setConcept] = useState("");
   const [payLoading, setPayLoading] = useState(false);
   const [payError, setPayError] = useState(null);
+  const [payReview, setPayReview] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState(null);
 
   const left = useCountdown(codigo ? 120 : 0);
   const esEmpresa = ["business", "empresa", "organismo", "state"].includes(String(cuenta?.type || "").toLowerCase());
@@ -61,6 +63,12 @@ export default function Placezum({ cuenta, cuentas }) {
     }
   };
 
+  const revisarPago = () => {
+    if (payCode.length !== 5 || !Number(amount) || Number(amount) <= 0) return;
+    setIdempotencyKey(window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}-${Math.random()}`);
+    setPayReview(true);
+  };
+
   const pagar = async () => {
     setPayLoading(true);
     setPayError(null);
@@ -71,11 +79,13 @@ export default function Placezum({ cuenta, cuentas }) {
         codigo: payCode,
         cantidad: Number(amount),
         concepto: concept,
-      });
+      }, idempotencyKey);
       setResultado(r.placezum || r);
       setPayCode("");
       setAmount("");
       setConcept("");
+      setIdempotencyKey(null);
+      setPayReview(false);
     } catch (e) {
       setPayError(e.body?.error || e.message);
     } finally {
@@ -184,7 +194,7 @@ export default function Placezum({ cuenta, cuentas }) {
             <label className="mb-2 block text-sm font-bold text-brand-dark">
               Código del destinatario
             </label>
-            <OtpInput length={5} value={payCode} onChange={setPayCode} />
+            <OtpInput length={5} value={payCode} onChange={(value) => { setPayCode(value); setIdempotencyKey(null); }} />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -195,7 +205,7 @@ export default function Placezum({ cuenta, cuentas }) {
                 min="1"
                 inputMode="numeric"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => { setAmount(e.target.value); setIdempotencyKey(null); }}
                 className="w-full rounded-xl border-2 border-brand/15 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-brand focus:ring-4 focus:ring-brand/10"
                 placeholder="0"
               />
@@ -208,18 +218,28 @@ export default function Placezum({ cuenta, cuentas }) {
                 type="text"
                 value={concept}
                 maxLength={80}
-                onChange={(e) => setConcept(e.target.value)}
+                onChange={(e) => { setConcept(e.target.value); setIdempotencyKey(null); }}
                 className="w-full rounded-xl border-2 border-brand/15 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-brand focus:ring-4 focus:ring-brand/10"
                 placeholder="Ej. Cañas con la peña"
               />
             </div>
           </div>
 
-          <Button onClick={pagar} loading={payLoading} disabled={payCode.length !== 5 || !Number(amount)}>
-            Enviar {amount ? formatPz(Number(amount)) + " Pz" : ""}
+          <Button onClick={revisarPago} disabled={payCode.length !== 5 || !Number(amount) || Number(amount) <= 0}>
+            Revisar pago
           </Button>
         </Card>
       )}
+
+      {payReview && <div className="payment-review-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !payLoading) setPayReview(false); }}>
+        <section role="dialog" aria-modal="true" aria-labelledby="placezum-review-title" className="payment-review-card">
+          <h2 id="placezum-review-title">Confirma tu pago PlaceZUM</h2>
+          <p>Verifica destinatario e importe. Se creará una operación pendiente; el saldo no se cargará hasta firmarla en PlacetaID.</p>
+          <dl><div><dt>Código del destinatario</dt><dd>{payCode}</dd></div><div><dt>Desde</dt><dd>{cuenta?.displayName || cuenta?.id}</dd></div><div><dt>Importe</dt><dd>{formatPz(Number(amount))} Pz</dd></div>{concept.trim() && <div><dt>Concepto</dt><dd>{concept}</dd></div>}</dl>
+          {payError && <p className="payment-review-error" role="alert">{payError}</p>}
+          <div className="payment-review-actions"><button type="button" disabled={payLoading} onClick={() => setPayReview(false)}>Volver</button><button type="button" disabled={payLoading} onClick={pagar}>{payLoading ? "Enviando…" : "Confirmar y enviar"}</button></div>
+        </section>
+      </div>}
 
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600">

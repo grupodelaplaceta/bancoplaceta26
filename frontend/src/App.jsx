@@ -86,13 +86,41 @@ function useHashRoute() {
   return route;
 }
 
+function retryLocalNavigation() {
+  window.location.reload();
+}
+
+function safeReturnPath() {
+  const requested = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  return requested.startsWith("/") && !requested.startsWith("//") ? requested : "/";
+}
+
 export default function App() {
   const route = useHashRoute();
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [accountError, setAccountError] = useState(null);
   const [cuentaId, setCuentaId] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    try { return window.localStorage.getItem("banco-theme") || "light"; }
+    catch { return "light"; }
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try { window.localStorage.setItem("banco-theme", theme); } catch { /* almacenamiento privado */ }
+  }, [theme]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
 
   useEffect(() => {
     let alive = true;
@@ -120,17 +148,21 @@ export default function App() {
   );
 
   const seleccionarCuenta = async (id) => {
+    if (!id || id === cuentaId) return;
+    setAccountError(null);
     setCuentaId(id);
     if (route !== "inicio") window.location.hash = "inicio";
     try {
       await api.seleccionarCuenta(id);
-    } catch {
-      /* la cookie es opcional: si falla seguimos con la selección local */
+    } catch (e) {
+      setCuentaId((current) => current === id ? (me?.cuentas?.find((item) => item.id === cuentaId)?.id || null) : current);
+      setAccountError(`No se pudo cambiar la cuenta: ${e.message}`);
     }
   };
 
   const tipoCuenta = String(cuenta?.type || "").toLowerCase();
-  const cuentaJunior = tipoCuenta === "junior" || tipoCuenta.includes("juvenil");
+  const cuentaJunior = tipoCuenta === "junior" || tipoCuenta === "child" || tipoCuenta.includes("juvenil");
+  const cuentaJoven = tipoCuenta === "joven" || tipoCuenta.includes("joven") || tipoCuenta === "young" || tipoCuenta === "youth";
   const cuentaEmpresa = ["business", "empresa", "organismo", "state"].includes(tipoCuenta);
   const cuentaInversion = ["investment", "inversion"].includes(tipoCuenta);
   const inversionesPermitidas = cuentaInversion || cuentaEmpresa || Boolean(cuenta?.eip);
@@ -140,11 +172,11 @@ export default function App() {
     if (cuentaJunior) {
       visible = BASE_NAV.map((section) => ({
         ...section,
-        items: section.items.filter((item) => ["inicio", "movimientos", "transferencia", "placezum", "normativa"].includes(item.id))
+        items: section.items.filter((item) => ["inicio", "movimientos", "normativa"].includes(item.id))
       })).filter((section) => section.items.length);
     }
 
-    if (cuentaEmpresa) {
+    if (cuentaEmpresa && !cuentaJunior) {
       visible = BASE_NAV.map((section) => ({
         ...section,
         items: section.items.filter((item) => !["tributos", "facturacion", "apertura"].includes(item.id))
@@ -168,9 +200,28 @@ export default function App() {
 
     return visible;
   }, [cuentaJunior, cuentaEmpresa, inversionesPermitidas]);
+  const accountMode = cuentaEmpresa ? "company" : cuentaJunior ? "junior" : cuentaJoven ? "young" : "personal";
   const currentItem = navVisible.flatMap((section) => section.items).find((item) => item.id === route);
   const activeRoute = currentItem ? route : "inicio";
   const Page = PAGES[activeRoute] || Dashboard;
+
+  const retrySession = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const profile = await api.me();
+      setMe(profile);
+      setCuentaId(profile.cuentaActiva || profile.cuentas?.[0]?.id || null);
+    } catch (e) {
+      if (e.message === "no_autenticado") {
+        window.location.assign(`/login?returnTo=${encodeURIComponent(safeReturnPath())}`);
+        return;
+      }
+      setError(e.message || "No se pudo recuperar la sesión.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (error) {
     return (
@@ -184,9 +235,10 @@ export default function App() {
           </div>
           <h1 className="text-xl font-extrabold text-brand-dark">No se pudo conectar</h1>
           <p className="mt-2 text-sm text-brand-dark/60">{error}</p>
-          <a href="/login" className="mt-5 inline-block rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white">
-            Volver al inicio de sesión
-          </a>
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <button type="button" className="rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white" onClick={retrySession}>Reintentar</button>
+            <a href={`/login?returnTo=${encodeURIComponent(safeReturnPath())}`} className="rounded-xl border border-brand/20 px-5 py-3 text-sm font-bold text-brand">Iniciar sesión</a>
+          </div>
         </div>
       </div>
     );
@@ -206,18 +258,20 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell account-mode-${accountMode}`}>
+      <a className="skip-link" href="#main-content">Saltar al contenido</a>
       <button
         type="button"
         className="mobile-menu-button"
         aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
         aria-expanded={menuOpen}
+        aria-controls="primary-navigation"
         onClick={() => setMenuOpen((v) => !v)}
       >
         <Icon name={menuOpen ? "close" : "menu"} size={21} />
       </button>
       {menuOpen && <button type="button" className="mobile-scrim" aria-label="Cerrar menú" onClick={() => setMenuOpen(false)} />}
-      <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
+      <aside id="primary-navigation" aria-label="Navegación principal" className={`sidebar ${menuOpen ? "sidebar-open" : ""}`}>
         <div className="app-brand-logo-wrap">
           <img className="app-brand-logo" src="/img/logobancosobreblanco.png" alt="Banco de La Placeta" />
         </div>
@@ -259,9 +313,15 @@ export default function App() {
             </div>
           ))}
         </nav>
+        <button type="button" className="theme-toggle" onClick={() => setTheme((value) => value === "dark" ? "light" : "dark")} aria-pressed={theme === "dark"}>
+          <Icon name={theme === "dark" ? "sun" : "moon"} size={18} />
+          <span>{theme === "dark" ? "Modo claro" : "Modo oscuro"}</span>
+        </button>
       </aside>
 
-      <main className={`main ${cuentaEmpresa ? "account-mode-company" : cuentaJunior ? "account-mode-junior" : "account-mode-personal"}`}>
+      <main id="main-content" tabIndex={-1} className={`main account-mode-${accountMode}`}>
+        <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">Sección: {currentItem?.label || "Inicio"}</div>
+        {accountError && <div className="session-notice" role="alert"><span>{accountError}</span><button type="button" onClick={() => setAccountError(null)}>Cerrar</button></div>}
         <header className="header">
           <div>
             <p className="eyebrow">{currentItem?.label || "Banco de La Placeta"}</p>
@@ -283,7 +343,7 @@ export default function App() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.14, ease: "easeOut" }}
           >
-            <Suspense fallback={<div className="page-loading"><Spinner /><span>Cargando sección…</span></div>}>
+            <Suspense fallback={<div className="page-loading" role="status" aria-live="polite"><Spinner /><span>Cargando sección…</span></div>}>
               <Page cuenta={cuenta} cuentas={me.cuentas || []} me={me} />
             </Suspense>
           </motion.div>

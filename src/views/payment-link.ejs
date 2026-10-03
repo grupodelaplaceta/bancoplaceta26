@@ -30,13 +30,30 @@
         <div class="rows">
           <div class="row"><span>Base</span><b><%= new Intl.NumberFormat('es-ES').format(Number(link.amountPz || 0)) %> Pz</b></div>
           <% if (Number(link.ivaPz || 0) > 0) { %><div class="row"><span>IVA</span><b><%= new Intl.NumberFormat('es-ES').format(Number(link.ivaPz)) %> Pz</b></div><% } %>
-          <div class="row"><span>Estado</span><b><%= link.status === 'Pending' ? 'Pendiente de pago' : 'Ya procesado' %></b></div>
+          <div class="row"><span>Estado</span><b><%= typeof pending !== 'undefined' && pending ? 'Pendiente de firma' : link.status === 'Pending' ? 'Pendiente de pago' : 'Pago confirmado' %></b></div>
         </div>
-        <% if (link.status === 'Pending') { %>
+        <% if (typeof pending !== 'undefined' && pending) { %>
+          <p class="notice">Solicitud creada (<%= pending.id %>). Aún no se ha descontado el saldo. Confirma la operación desde PlacetaID Móvil con el código <b><%= pending.executionCode %></b>.</p>
+          <a class="button" href="<%= '/pagar/' + link.id + '?signature=' + encodeURIComponent(signature) %>">Volver al estado del enlace</a>
+          <div class="secure">Solicitud bancaria · firma requerida</div>
+        <% } else if (link.status === 'Pending' && typeof cuentas !== 'undefined' && cuentas.some(c => ['current','savings','personal','shared','joint'].includes(String(c.type || '').toLowerCase()))) { %>
+          <p class="muted">El pago solo se tramitará después de que firmes la operación. No se cargará saldo ahora.</p>
+          <form method="post" action="/pagar/<%= encodeURIComponent(link.id) %>/confirmar">
+            <input type="hidden" name="signature" value="<%= signature %>">
+            <label for="payment-account" class="muted">Pagar desde una cuenta personal</label>
+            <select id="payment-account" name="accountId" required class="button" style="margin-top:8px;background:#fff;color:#241637;border:1px solid #ddd">
+              <% (cuentas || []).filter(c => ['current','savings','personal','shared','joint'].includes(String(c.type || '').toLowerCase())).forEach(c => { %>
+                <option value="<%= c.id %>"><%= c.displayName || 'Cuenta' %> · <%= new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(c.balancePz || 0)) %> Pz disponibles</option>
+              <% }) %>
+            </select>
+            <button class="button" type="submit">Solicitar pago · <%= new Intl.NumberFormat('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(link.totalPz || 0)) %> Pz</button>
+          </form>
+          <div class="secure">El pago requiere tu firma en PlacetaID Móvil</div>
+        <% } else if (link.status === 'Pending') { %>
           <a class="button" href="/auth/login?returnTo=<%= encodeURIComponent('/pagar/' + link.id + '?signature=' + signature) %>">Continuar con PlacetaID</a>
           <div class="secure">Enlace verificado · conexión protegida</div>
         <% } else { %>
-          <p class="notice">Este enlace ya ha sido procesado y no admite un segundo pago.</p>
+          <p class="notice">El pago de este enlace ya se confirmó. No se puede volver a cobrar.</p>
         <% } %>
       <% } %>
     </section>

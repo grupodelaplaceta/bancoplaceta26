@@ -37,13 +37,26 @@ export default function Gestores({ cuenta }) {
 
   const totalParticipacion = (data || []).reduce((total, item) => total + (Number(item.ownershipPercent ?? item.percent ?? 0) || 0), 0);
   const pendiente = Math.max(0, 100 - totalParticipacion);
+  const porcentajeNuevo = Number(ownershipPercent) || 0;
+  const sumaTrasAlta = totalParticipacion + porcentajeNuevo;
 
   const añadirCotitular = async (event) => {
     event.preventDefault();
-    setSaving(true);
     setMessage(null);
+
+    if (porcentajeNuevo <= 0 || porcentajeNuevo > 100) {
+      setMessage("El porcentaje de participación debe estar entre 1% y 100%.");
+      return;
+    }
+
+    if (sumaTrasAlta > 100) {
+      setMessage(`La suma de participaciones superaría el 100% (${sumaTrasAlta}% actual). Libera espacio antes de asignar este porcentaje.`);
+      return;
+    }
+
+    setSaving(true);
     try {
-      await api.añadirCotitular({ accountId: cuenta?.id, placetaId, ownershipPercent: Number(ownershipPercent) || 0, role: role || "manager", status: "pending_approval" });
+      await api.añadirCotitular({ accountId: cuenta?.id, placetaId, ownershipPercent: porcentajeNuevo, role: role || "manager", status: "pending_approval" });
       setPlacetaId("");
       setOwnershipPercent("25");
       setRole("manager");
@@ -81,6 +94,9 @@ export default function Gestores({ cuenta }) {
           <input min="0" max="100" type="number" value={ownershipPercent} onChange={(event) => setOwnershipPercent(event.target.value)} placeholder="%" className="rounded-xl border border-brand/15 px-3 py-2 text-sm" />
           <button disabled={saving || !cuenta?.id} type="submit" className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Solicitando…" : "Enviar"}</button>
         </form>
+        <p className="mb-4 text-xs font-medium text-brand-dark/60">
+          Participación total actual: {totalParticipacion}% · disponible: {pendiente}% · propuesto: {sumaTrasAlta > 100 ? <span className="text-rose-600">{sumaTrasAlta}%</span> : `${sumaTrasAlta}%`}
+        </p>
         {message && <p className="mb-4 text-sm text-brand-dark/70">{message}</p>}
         {!data && !err ? (
           <Skeleton className="h-24 w-full" />
